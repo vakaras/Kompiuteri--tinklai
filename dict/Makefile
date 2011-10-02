@@ -1,4 +1,4 @@
 FLAGS=-g
 
-server: server.h server.cpp
-	g++ ${FLAGS} server.h server.cpp -o server
+server: server.h server.cpp socket.h socket.cpp
+	g++ ${FLAGS} -o server server.cpp socket.cpp

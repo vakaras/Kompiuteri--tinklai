@@ -19,5 +19,8 @@
 
 #include <cstring>
 #include <cstdio>
+#include <exception>
+
+#include "socket.h"
 
 #endif
