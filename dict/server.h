@@ -25,6 +25,7 @@
 
 #include "socket.h"
 #include "package.h"
+#include "dict.h"
 
 
 namespace dict {
@@ -72,9 +73,12 @@ private:
   fd_set sockets_descriptors_set;
   std::list< std::shared_ptr<dict::socket::ClientSocket> > clients;
 
+  dict::Dict<dict::package::WordList> dict;
+
 public:
 
-  Server(int port=DEFAULT_PORT): server_socket(port) {
+  Server(std::string filename, int port=DEFAULT_PORT):
+    server_socket(port), dict(filename) {
 
     this->port = port;
     FD_ZERO(&this->sockets_descriptors_set);
@@ -139,10 +143,7 @@ public:
             dict::package::Word word(*i);
             fprintf(log, "Searching: %s\n", word.get_value().c_str());
             dict::package::WordList word_list;
-            word_list.append("v1", "m1");
-            word_list.append("v2", "m2");
-            word_list.append("v3", "m3");
-            word_list.append("v4", "m4");
+            this->dict.search(word.get_value(), word_list);
             word_list.send(*i);
             fprintf(log, "Result sent.\n");
             }

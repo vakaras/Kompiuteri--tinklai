@@ -80,7 +80,8 @@ WordList::WordList(std::shared_ptr<dict::socket::ClientSocket> socket) {
 
   for (int i = 0; i < word_count; i++) {
 
-    this->append(this->read_string(socket), this->read_string(socket));
+    std::string value = this->read_string(socket);
+    this->append(value, this->read_string(socket));
     
     }
 
