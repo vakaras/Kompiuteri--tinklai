@@ -9,6 +9,7 @@
 #include <cstring>
 #include <string>
 #include <exception>
+#include <memory>
 
 
 namespace dict {
@@ -56,31 +57,64 @@ public:
   };
 
 
-class ServerSocket {
+class Socket {
 
-private:
-public:
+protected:
 
   SOCKET descriptor;
-  std::string host_name;
   sockaddr_in address;
   hostent *host_entry;
 
+  void set_reuse_option();
+
+public:
+
+  ~Socket();
+
+  std::string get_ip_address();
+  SOCKET get_descriptor();
+
+  };
+
+
+class ClientSocket: public Socket {
+
+private:
+
+  FILE *read_connection;
+  FILE *write_connection;
+
+public:
+
+  ClientSocket(SOCKET server_socket_descriptor);
+  ~ClientSocket();
+
+  size_t read(void *buffer, size_t size, size_t count);
+  int write(const void *buffer, size_t size, size_t count);
+  void flush();
+
+  };
+
+
+class ServerSocket: public Socket {
+
+private:
+
+  std::string host_name;
 
   void init_address(int port);
   void init_socket();
 
+public:
 
   ServerSocket(int port=DEFAULT_PORT);
-  ~ServerSocket();
 
   std::string get_host_name();
-  std::string get_ip_address();
+  std::shared_ptr<ClientSocket> accept_client();
 
   };
 
 };
 };
-
 
 #endif
