@@ -7,6 +7,7 @@
 #include <exception>
 #include <sys/param.h>
 #include <errno.h>
+#include <list>
 
 #include "socket.h"
 
@@ -69,6 +70,44 @@ public:
 
   std::string get_value();
   void send(std::shared_ptr<dict::socket::ClientSocket> socket);
+
+  };
+
+
+class WordList {
+
+public:
+
+  struct Word {
+
+    std::string value;
+    std::string meaning;
+
+    Word(std::string _value, std::string _meaning):
+      value(_value), meaning(_meaning) {
+      
+      }
+
+    };
+  
+private:
+
+  std::shared_ptr< std::list<Word> > words;
+  std::string read_string(
+      std::shared_ptr<dict::socket::ClientSocket> socket);
+  void write_string(
+      std::shared_ptr<dict::socket::ClientSocket> socket,
+      std::string value);
+
+
+public:
+
+  WordList();
+  WordList(std::shared_ptr<dict::socket::ClientSocket> socket);
+
+  void send(std::shared_ptr<dict::socket::ClientSocket> socket);
+  std::shared_ptr< std::list<Word> > get_words();
+  void append(std::string value, std::string meaning);
 
   };
 

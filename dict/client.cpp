@@ -26,6 +26,16 @@ int main(int argc, char *argv[]) {
     Word word = Word(std::string(buffer));
     word.send(socket);
 
+    std::shared_ptr< std::list<WordList::Word> > word_list =
+      WordList(socket).get_words();
+
+    printf("Found %d matches:\n", (int) word_list->size());
+    for (std::list<WordList::Word>::iterator i = word_list->begin();
+        i != word_list->end(); i++) {
+      printf("\n  %s:\n", i->value.c_str());
+      printf("%s\n", i->meaning.c_str());
+      }
+
     }
 
   return 0;

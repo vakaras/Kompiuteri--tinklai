@@ -137,7 +137,14 @@ public:
               &sockets_descriptors_set)) {
           try {
             dict::package::Word word(*i);
-            fprintf(log, "%s\n", word.get_value().c_str());
+            fprintf(log, "Searching: %s\n", word.get_value().c_str());
+            dict::package::WordList word_list;
+            word_list.append("v1", "m1");
+            word_list.append("v2", "m2");
+            word_list.append("v3", "m3");
+            word_list.append("v4", "m4");
+            word_list.send(*i);
+            fprintf(log, "Result sent.\n");
             }
           catch (dict::package::NoDataException &e) {
             }
@@ -172,9 +179,6 @@ public:
     this->max_known_socket_descriptor = std::max(
         this->max_known_socket_descriptor,
         socket->get_descriptor());
-
-    socket->write("Sveikas pasauli!\n", 1, 18);
-    socket->flush();
 
     fprintf(
         log, "Client connected: %s.\n",
