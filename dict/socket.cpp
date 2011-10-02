@@ -15,6 +15,40 @@ void Socket::set_reuse_option() {
   }
 
 
+void Socket::get_host_by_name(const char *host_name) {
+
+  if (NULL == (this->host_entry = gethostbyname(host_name))) {
+    throw BaseException("Failed to get host information.");
+    }
+
+  }
+
+
+void Socket::form_address(int port) {
+
+  //this->address.sin_len = sizeof(this->address);
+  this->address.sin_family = AF_INET;   // AF_INET – internet address 
+                                        // family.
+  this->address.sin_port = htons(port);
+  this->address.sin_addr = *((in_addr *)this->host_entry->h_addr);
+  memset(&(this->address.sin_zero), 0, 8);
+
+  }
+
+
+void Socket::open_socket() {
+
+  if (INVALID_SOCKET == (
+        this->descriptor = ::socket(
+          AF_INET,                      // Use IP.
+          SOCK_STREAM,                  // Use TCP.
+          0))) {
+    throw BaseException("Failed to open socket.");
+    }
+
+  }
+
+
 std::string Socket::get_ip_address() {
   return inet_ntoa(*((in_addr *)this->host_entry->h_addr));
   }
@@ -53,6 +87,26 @@ ClientSocket::ClientSocket(SOCKET server_socket_descriptor) {
   }
 
 
+ClientSocket::ClientSocket(const char *host_name, int port) {
+
+  this->get_host_by_name(host_name);
+  this->form_address(port);
+  this->open_socket();
+  this->set_reuse_option();
+
+  if (SOCKET_ERROR == connect(
+        this->descriptor,
+        (sockaddr *) &this->address,
+        sizeof(this->address))) {
+    throw BaseException("Connection failed!");
+    }
+
+  this->read_connection = fdopen(this->descriptor, "r");
+  this->write_connection = fdopen(this->descriptor, "w");
+
+  }
+
+
 ClientSocket::~ClientSocket() {
   fflush(this->write_connection);
   fclose(this->write_connection);
@@ -60,8 +114,15 @@ ClientSocket::~ClientSocket() {
   }
 
 
+// Non blocking read.
 size_t ClientSocket::read(void *buffer, size_t size, size_t count) {
-  return fread(buffer, size, count, this->read_connection);
+  return recv(this->descriptor, buffer, count * size, MSG_DONTWAIT);
+  }
+
+
+// Blocking read.
+size_t ClientSocket::read_block(void *buffer, size_t size, size_t count) {
+  return recv(this->descriptor, buffer, count * size, 0);
   }
 
 
@@ -102,29 +163,15 @@ void ServerSocket::init_address(int port) {
     }
   this->host_name = host_name;
 
-  if (NULL == (this->host_entry = gethostbyname(this->host_name.c_str()))) {
-    throw BaseException("Failed to get host information.");
-    }
-
-  this->address.sin_family = AF_INET;   // AF_INET – internet address 
-                                        // family.
-  this->address.sin_port = htons(port);
-  this->address.sin_addr = *((in_addr *)this->host_entry->h_addr);
-  memset(&(this->address.sin_zero), 0, 8);
+  this->get_host_by_name(host_name);
+  this->form_address(port);
 
   }
 
 
 void ServerSocket::init_socket() {
 
-  if (INVALID_SOCKET == (
-        this->descriptor = socket(
-          AF_INET,                      // Use IP.
-          SOCK_STREAM,                  // Use TCP.
-          0))) {
-    throw BaseException("Failed to open socket.");
-    }
-
+  this->open_socket();
   this->set_reuse_option();
 
   if (SOCKET_ERROR == bind(

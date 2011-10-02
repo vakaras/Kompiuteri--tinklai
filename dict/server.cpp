@@ -7,7 +7,7 @@ using namespace dict::server;
 int main(int argc, const char *argv[]) {
 
   try {
-    Server server(1029);
+    Server server(DEFAULT_PORT);
     server.start(stdout);
     }
   catch (std::exception &e) {

@@ -24,6 +24,7 @@
 #include <list>
 
 #include "socket.h"
+#include "package.h"
 
 
 namespace dict {
@@ -96,8 +97,13 @@ public:
     fd_set readable_sockets_set;
     FD_ZERO(&readable_sockets_set);
 
+    fprintf(
+        log, "Server socket descriptor: %d.\n",
+        this->server_socket.get_descriptor());
+
     while (true) {
 
+      fprintf(log, "Server: Selecting.\n");
       readable_sockets_set = this->sockets_descriptors_set;
       if (SOCKET_ERROR == select(
             this->max_known_socket_descriptor + 1,
@@ -109,14 +115,17 @@ public:
         throw BaseException("Socket error happened. Failed select.");
         }
 
+      fprintf(log, "Server: Selected.\n");
       if (FD_ISSET(
             this->server_socket.get_descriptor(),
-            &sockets_descriptors_set)) {
+            &readable_sockets_set)) {
+        fprintf(log, "Incomming connection.\n");
 
         // We have new connection.
         this->handle_new_connection(log);
         }
 
+      fprintf(log, "Checking clients.\n");
       for (
           std::list<
           std::shared_ptr<dict::socket::ClientSocket>
@@ -126,25 +135,29 @@ public:
         if (FD_ISSET(
               (*i)->get_descriptor(),
               &sockets_descriptors_set)) {
-          char buffer[MAX_CHAR];
-          fprintf(log, "Data from client (length=%d): ",
-              (int) (*i)->read(buffer, 1, MAX_CHAR));
-          fprintf(log, "%s\n", buffer);
+          try {
+            dict::package::Word word(*i);
+            fprintf(log, "%s\n", word.get_value().c_str());
+            }
+          catch (dict::package::NoDataException &e) {
+            }
+          catch (dict::package::BaseException &e) {
+            fprintf(
+                log,
+                "Closing %d connection. Reason: %s.\n",
+                (*i)->get_descriptor(),
+                e.what());
+            FD_CLR((*i)->get_descriptor(), &this->sockets_descriptors_set);
+            this->clients.erase(i);
+            break;
+            }
           }
+        fprintf(log, "\n");
+        fflush(log);
 
         }
 
       }
-    /**
-     * Paleidžia serverį.
-     *
-     * Kiekvienos iteracijos metu serveris:
-     *
-     * +  su select susigeneruoja laukiančių klientų aibę A;
-     * +  patikrina ar server_socket in A, jei taip į clients_set įkelia
-     *    laukiančius klientus;
-     * +  keliauja per clients_set ir tuos kurie yra aibėje A, apdoroja.
-     */
     }
 
   void handle_new_connection(FILE *log) {

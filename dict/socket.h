@@ -11,20 +11,19 @@
 #include <exception>
 #include <memory>
 
-
-namespace dict {
-namespace socket {
-
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <netdb.h>
 
-
 #define SOCKET int
 #define MAX_CHAR 256
 #define MAX_WAITING_CONNECTIONS 3
 #define DEFAULT_PORT 1234
+
+
+namespace dict {
+namespace socket {
 
 
 class BaseException: public std::exception {
@@ -66,6 +65,9 @@ protected:
   hostent *host_entry;
 
   void set_reuse_option();
+  void get_host_by_name(const char *host_name);
+  void form_address(int port);
+  void open_socket();
 
 public:
 
@@ -87,9 +89,11 @@ private:
 public:
 
   ClientSocket(SOCKET server_socket_descriptor);
+  ClientSocket(const char *host_name, int port);
   ~ClientSocket();
 
   size_t read(void *buffer, size_t size, size_t count);
+  size_t read_block(void *buffer, size_t size, size_t count);
   int write(const void *buffer, size_t size, size_t count);
   void flush();
 
