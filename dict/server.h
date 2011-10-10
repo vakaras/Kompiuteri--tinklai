@@ -1,14 +1,6 @@
 #ifndef DICT_SERVER_H
 #define DICT_SERVER_H 1
 
-//#include <sys/types.h>
-//#include <sys/socket.h>
-//#include <netinet/in.h>
-//#include <arpa/inet.h>
-//#include <sys/time.h>
-//#include <sys/wait.h>
-//#include <unistd.h>
-//#include <netdb.h>
 #include <sys/select.h>
 
 #define SOCKET int
