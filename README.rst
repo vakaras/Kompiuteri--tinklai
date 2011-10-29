@@ -15,3 +15,10 @@ Užduoties aprašymas:
 +   klientas – programa paprašo naudotojo įvesti ieškomą žodį, kreipiasi
     į žodyno serverį ir gautą rezultatą (užklausą atitinkančius
     žodžius ir jų paaiškinimus) parodo naudotojui.
+
+
+2 užduotis: Laiško siuntimas
+============================
+
+Iki laiško išsiuntimo. Nebūtinas saugumas. Pabandyti su opensmtp serveriuku
+savo kompiuteryje.
