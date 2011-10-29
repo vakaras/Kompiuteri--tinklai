@@ -51,11 +51,56 @@ void smtp::sender::send_message(
 
   // Pasisveikinimas.
   fprintf(fout, "ehlo %s\n", sender_server.c_str());
+  fflush(fout);
   while (!get_line(fin, &code, msg)) {
     printf("Received (%d): %s\n", code, msg);
     if (code != 250) {
       throw BaseException("Wrong return code. Expected: 250.");
       }
+    }
+
+  // Nurodomas siuntėjas.
+  fprintf(fout, "MAIL FROM:<%s>\n", author.c_str());
+  fflush(fout);
+  get_line(fin, &code, msg);
+  printf("Received (%d): %s\n", code, msg);
+  if (code != 250) {
+    throw BaseException("Wrong return code. Expected: 250.");
+    }
+
+  // Nurodomas gavėjas.
+  fprintf(fout, "RCPT TO:<%s>\n", recipient.c_str());
+  fflush(fout);
+  get_line(fin, &code, msg);
+  printf("Received (%d): %s\n", code, msg);
+  if (code != 250) {
+    throw BaseException("Wrong return code. Expected: 250.");
+    }
+
+  // Perduodamas laiškas.
+  fprintf(fout, "DATA\n");
+  fflush(fout);
+  get_line(fin, &code, msg);
+  printf("Received (%d): %s\n", code, msg);
+  if (code != 354) {
+    throw BaseException("Wrong return code. Expected: 354.");
+    }
+  message.write(fout);
+  fprintf(fout, "\n.\n");
+  fflush(fout);
+  get_line(fin, &code, msg);
+  printf("Received (%d): %s\n", code, msg);
+  if (code != 250) {
+    throw BaseException("Wrong return code. Expected: 250.");
+    }
+
+  // Atsijungiama nuo sesijos.
+  fprintf(fout, "QUIT\n");
+  fflush(fout);
+  get_line(fin, &code, msg);
+  printf("Received (%d): %s\n", code, msg);
+  if (code != 221) {
+    throw BaseException("Wrong return code. Expected: 221.");
     }
   
   }
