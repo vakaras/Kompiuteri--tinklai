@@ -97,6 +97,9 @@ public:
   int write(const void *buffer, size_t size, size_t count);
   void flush();
 
+  FILE *get_read_connection();
+  FILE *get_write_connection();
+
   };
 
 

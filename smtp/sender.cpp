@@ -20,14 +20,27 @@ void smtp::sender::send_message(
 
   ClientSocket socket(server.c_str(), port);
 
+  FILE *fin = socket.get_read_connection();
+  FILE *fout = socket.get_write_connection();
+
   char buffer[MAX_CHAR];
-  socket.read_block((void *) buffer, 1, MAX_CHAR);
-  printf("Received: %s\n", buffer);
-  if (get_code(buffer) != 220) {
-    throw BaseException(
-        (string("Wrong return code. Expected: 220. Message: ") +
-        string(buffer)).c_str());
+  char msg[MAX_CHAR];
+  int code;
+
+  fscanf(fin, "%d %s\n", &code, msg);
+  printf("Received (%d): %s\n", code, msg);
+  if (code != 220) {
+    throw BaseException("Wrong return code. Expected: 220.");
     }
+
+
+  //socket.read_block((void *) buffer, 1, MAX_CHAR);
+  //printf("Received: %s\n", buffer);
+  //if (get_code(buffer) != 220) {
+    //throw BaseException(
+        //(string("Wrong return code. Expected: 220. Message: ") +
+        //string(buffer)).c_str());
+    //}
 
   // Pasisveikinimas.
   string hello = "ehlo " + sender_server;

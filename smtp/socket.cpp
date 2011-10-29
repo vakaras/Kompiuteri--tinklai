@@ -136,6 +136,16 @@ void ClientSocket::flush() {
   }
 
 
+FILE *ClientSocket::get_read_connection() {
+  return this->read_connection;
+  }
+
+
+FILE *ClientSocket::get_write_connection() {
+  return this->write_connection;
+  }
+
+
 ServerSocket::ServerSocket(int port) {
 
   this->descriptor = -1;
