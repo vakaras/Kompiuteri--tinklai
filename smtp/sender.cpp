@@ -18,11 +18,11 @@ bool get_line(FILE *fin, int *code, char *buffer) {
   bool end = fgetc(fin) == ' ';
   for (int i = 0; char c = fgetc(fin); i++) {
     if (c == '\n') {
-      buffer[i++] = 0;
+      buffer[i] = 0;
       break;
       }
     else {
-      buffer[i++] = c;
+      buffer[i] = c;
       }
     }
   return end;
@@ -44,34 +44,17 @@ void smtp::sender::send_message(
   int code;
 
   get_line(fin, &code, msg);
-  //fscanf(fin, "%d %s\n", &code, msg);
   printf("Received (%d): %s\n", code, msg);
   if (code != 220) {
     throw BaseException("Wrong return code. Expected: 220.");
     }
 
-
-  //socket.read_block((void *) buffer, 1, MAX_CHAR);
-  //printf("Received: %s\n", buffer);
-  //if (get_code(buffer) != 220) {
-    //throw BaseException(
-        //(string("Wrong return code. Expected: 220. Message: ") +
-        //string(buffer)).c_str());
-    //}
-
   // Pasisveikinimas.
-  string hello = "ehlo " + sender_server;
-  socket.write(hello.c_str(), 1, hello.length());
-  while (true) {
-    socket.read_block((void *) buffer, 1, MAX_CHAR);
-    printf("Received: %s\n", buffer);
-    if (get_code(buffer) != 250) {
-      throw BaseException(
-          (string("Wrong return code. Expected: 250. Message: ") +
-          string(buffer)).c_str());
-      }
-    if (buffer[3] == ' ') {
-      break;
+  fprintf(fout, "ehlo %s\n", sender_server.c_str());
+  while (!get_line(fin, &code, msg)) {
+    printf("Received (%d): %s\n", code, msg);
+    if (code != 250) {
+      throw BaseException("Wrong return code. Expected: 250.");
       }
     }
   
