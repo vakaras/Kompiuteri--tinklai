@@ -4,6 +4,7 @@
 ../mail \
   "vastrauskas@gmail.com" \
   "localhost" \
+  25 \
   "vytautas@astrauskas.lt" \
   "astrauskas.lt" \
   "tekstas.html" \
