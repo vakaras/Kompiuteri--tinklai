@@ -1,0 +1,12 @@
+#!/bin/bash
+
+
+../mail \
+  "vastrauskas@gmail.com" \
+  "localhost" \
+  "vytautas@astrauskas.lt" \
+  "astrauskas.lt" \
+  "tekstas.html" \
+  "Pavyzdys 01: Laiškas su formulėmis." \
+  "integralas.jpg" \
+  "isvestine.jpg"
