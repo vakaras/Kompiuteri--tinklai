@@ -1,6 +1,8 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <QDebug>
+
 #define _C static const
 #define _E enum
 #define _F friend
@@ -12,6 +14,6 @@
 
 #define Vacuum
 
-typedef char            Byte;
+typedef unsigned char         Byte;
 
 #endif // TYPES_H

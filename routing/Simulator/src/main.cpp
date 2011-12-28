@@ -1,10 +1,10 @@
 #include <QtCore/QCoreApplication>
-#include <src/unidirectionalcable/unidirectionalcable.h>
+#include <src/unidirectionalcable/testunidirectionalcable.h>
 
 int main(int argc, char *argv[])
 {
-  UnidirectionalCable cable;
-  QCoreApplication a(argc, argv);
-
-  return a.exec();
+  TestUnidirectionalCable test1;
+  QTest::qExec(&test1, argc, argv);
+//QCoreApplication a(argc, argv);
+//return a.exec();
 }

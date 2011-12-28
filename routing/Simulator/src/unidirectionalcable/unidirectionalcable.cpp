@@ -8,8 +8,8 @@ UnidirectionalCable::UnidirectionalCable(double errorRate, QObject *parent) :
 
 Byte UnidirectionalCable::read()
 {
-  QMutexLocker locker(&m_mutex);
   m_semaphore.acquire();
+  QMutexLocker locker(&m_mutex);
   return m_buffer.dequeue();
 }
 
@@ -20,9 +20,10 @@ void UnidirectionalCable::write(Byte byte)
   for (int i = 0; i < 8; i++)
   {
     Byte bit = (byte >> i) & 1;
-    bit ^= (int) (qrand() >= RAND_MAX * m_errorRate);
+    int rand = qrand();
+    bit ^= (int) (rand <= RAND_MAX * m_errorRate);
     result |= bit << i;
   }
-  m_buffer.enqueue(byte);
+  m_buffer.enqueue(result);
   m_semaphore.release();
 }
