@@ -1,8 +1,10 @@
 #include <QtCore/QCoreApplication>
+#include <src/unidirectionalcable/unidirectionalcable.h>
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
+  UnidirectionalCable cable;
+  QCoreApplication a(argc, argv);
 
-    return a.exec();
+  return a.exec();
 }
