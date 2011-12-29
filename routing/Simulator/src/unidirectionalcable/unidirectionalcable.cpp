@@ -7,10 +7,24 @@ UnidirectionalCable::UnidirectionalCable(
 {
 }
 
-Bit UnidirectionalCable::read()
+Bit UnidirectionalCable::read(ulong time, bool *timeOuted)
 {
-  m_semaphore.acquire();
   QMutexLocker locker(&m_mutex);
+  while (m_buffer.size() == 0)
+  {
+    if (!m_waitCondition.wait(&m_mutex, time))
+    {
+      if (timeOuted)
+      {
+        *timeOuted = true;
+      }
+      return 0;
+    }
+  }
+  if (timeOuted)
+  {
+    *timeOuted = false;
+  }
   return m_buffer.dequeue();
 }
 
@@ -21,12 +35,12 @@ void UnidirectionalCable::write(Bit bit)
   {
     bit ^= (qrand() <= RAND_MAX * m_errorRate);
     m_buffer.enqueue(bit);
-    m_semaphore.release();
+    m_waitCondition.wakeOne();
   }
   if (qrand() <= RAND_MAX * m_lostRate)
   {
     m_buffer.enqueue(qrand() <= (RAND_MAX >> 1));
-    m_semaphore.release();
+    m_waitCondition.wakeOne();
   }
 }
 

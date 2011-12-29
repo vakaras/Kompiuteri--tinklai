@@ -10,7 +10,8 @@ class IPhysicalConnection
   public:
 
     _V void write(Bit bit) = 0;
-    _V Bit  read() = 0;                 // Blocks if there is no data
+    _V Bit  read(ulong time=ULONG_MAX, bool *timeOuted=NULL) = 0;
+                                        // Blocks if there is no data
                                         // available.
     _V void reset() = 0;                // Reinitializes connection.
 };
