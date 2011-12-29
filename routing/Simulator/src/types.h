@@ -15,5 +15,6 @@
 #define Vacuum
 
 typedef unsigned char         Byte;
+typedef bool                  Bit;
 
 #endif // TYPES_H

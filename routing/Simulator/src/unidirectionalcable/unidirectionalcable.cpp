@@ -1,29 +1,31 @@
 #include "unidirectionalcable.h"
 #include <cstdlib>
 
-UnidirectionalCable::UnidirectionalCable(double errorRate, QObject *parent) :
-    QObject(parent), m_errorRate(errorRate)
+UnidirectionalCable::UnidirectionalCable(
+  double errorRate, double lostRate, QObject *parent) :
+    QObject(parent), m_errorRate(errorRate), m_lostRate(lostRate)
 {
 }
 
-Byte UnidirectionalCable::read()
+Bit UnidirectionalCable::read()
 {
   m_semaphore.acquire();
   QMutexLocker locker(&m_mutex);
   return m_buffer.dequeue();
 }
 
-void UnidirectionalCable::write(Byte byte)
+void UnidirectionalCable::write(Bit bit)
 {
   QMutexLocker locker(&m_mutex);
-  Byte result = 0;
-  for (int i = 0; i < 8; i++)
+  if (qrand() >= RAND_MAX * m_lostRate)
   {
-    Byte bit = (byte >> i) & 1;
-    int rand = qrand();
-    bit ^= (int) (rand <= RAND_MAX * m_errorRate);
-    result |= bit << i;
+    bit ^= (qrand() <= RAND_MAX * m_errorRate);
+    m_buffer.enqueue(bit);
+    m_semaphore.release();
   }
-  m_buffer.enqueue(result);
-  m_semaphore.release();
+  if (qrand() <= RAND_MAX * m_lostRate)
+  {
+    m_buffer.enqueue(qrand() <= (RAND_MAX >> 1));
+    m_semaphore.release();
+  }
 }

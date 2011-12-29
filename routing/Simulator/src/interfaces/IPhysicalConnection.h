@@ -9,8 +9,8 @@ class IPhysicalConnection
 
   public:
 
-    _V void write(Byte byte) = 0;
-    _V Byte read() = 0;                 // Blocks if there is no data
+    _V void write(Bit bit) = 0;
+    _V Bit read() = 0;                  // Blocks if there is no data
                                         // available.
 };
 
