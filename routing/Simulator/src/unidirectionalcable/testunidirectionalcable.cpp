@@ -3,6 +3,7 @@
 
 void TestUnidirectionalCable::testGoodCable()
 {
+  qsrand(10);
   UnidirectionalCable cable(0.0, 0.0);
   for (Byte i = 0; i < 255; i++)
   {
@@ -25,6 +26,7 @@ void TestUnidirectionalCable::testGoodCable()
 
 void TestUnidirectionalCable::testBadCable()
 {
+  qsrand(10);
   UnidirectionalCable cable(1.0, 0.0);
 
   for (Byte i = 0; i < 255; i++)
@@ -47,6 +49,7 @@ void TestUnidirectionalCable::testBadCable()
 
 void TestUnidirectionalCable::testNormalCable()
 {
+  qsrand(10);
   UnidirectionalCable cable(0.5, 0.5);
 
   for (Byte i = 0; i < 255; i++)
@@ -78,6 +81,7 @@ void TestUnidirectionalCable::testNormalCable()
 
 void TestUnidirectionalCable::testEmptyCable()
 {
+  qsrand(10);
   UnidirectionalCable cable;
   Reader reader(&cable);
   reader.start();

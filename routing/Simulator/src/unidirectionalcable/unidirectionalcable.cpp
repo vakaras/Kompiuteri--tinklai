@@ -29,3 +29,11 @@ void UnidirectionalCable::write(Bit bit)
     m_semaphore.release();
   }
 }
+
+
+void UnidirectionalCable::reset()
+{
+  QMutexLocker locker(&m_mutex);
+  m_semaphore.acquire(m_semaphore.available());
+  m_buffer.clear();
+}

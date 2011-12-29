@@ -10,8 +10,9 @@ class IPhysicalConnection
   public:
 
     _V void write(Bit bit) = 0;
-    _V Bit read() = 0;                  // Blocks if there is no data
+    _V Bit  read() = 0;                 // Blocks if there is no data
                                         // available.
+    _V void reset() = 0;                // Reinitializes connection.
 };
 
 #endif // IPHYSICALCONNECTION_H

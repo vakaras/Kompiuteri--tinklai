@@ -30,6 +30,7 @@ public:
     double errorRate = 0.0, double lostRate = 0.0, QObject *parent = 0);
   _M Bit              read();
   _M void             write(Bit byte);
+  _M void             reset();
 
 
 signals:
