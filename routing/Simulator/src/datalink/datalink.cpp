@@ -8,9 +8,10 @@ DataLink::DataLink(IPhysicalConnection *connectionIn,
   QObject(parent),
   m_connectionIn(connectionIn),
   m_connectionOut(connectionOut),
-  m_reader(this),
   m_maxFrameSize(maxFrameSize),
-  m_maxReceivedDataBufferSize(maxFrameSize * maxFrameCount)
+  m_reader(this),
+  m_maxReceivedDataBufferSize(maxFrameSize * maxFrameCount),
+  m_writer(this)
 {
   connectionIn->reset();
   connectionOut->reset();
@@ -207,6 +208,26 @@ void DataLinkReader::run()
   }
 }
 
+bool DataLink::write(const Byte *bytes, uint len)
+{
+  QMutexLocker locker(&m_writeFunctionMutex);
+  QMutexLocker locker2(&m_frameQueueMutex);
+
+  for (uint i = 0; i < len; i += m_maxFrameSize)
+  {
+    if (i + m_maxFrameSize < len)
+      m_frameQueue.enqueue(Frame(bytes + i, m_maxFrameSize));
+    else
+      m_frameQueue.enqueue(Frame(bytes + i, len - i));
+  }
+
+  while (!m_frameQueue.isEmpty())
+  {
+    m_frameQueueWaitCondition.wait(&m_frameQueueMutex);
+  }
+  return true;
+}
+
 int DataLink::read(Byte *bytes, uint maxlen, ulong time)
 {
   QMutexLocker locker(&m_receivedDataBufferMutex);
@@ -226,4 +247,20 @@ int DataLink::read(Byte *bytes, uint maxlen, ulong time)
     m_receivedDataBuffer.removeFirst();
   }
   return counter;
+}
+
+void DataLink::reset()
+{
+  QMutexLocker locker(&m_receivedDataBufferMutex);
+  m_reader.stop();
+  m_reader.wait();
+  m_connectionIn->reset();
+  m_connectionOut->reset();
+  m_receivedDataBuffer.clear();
+  m_reader.start();
+  // TODO: Išvalyti „rašytojo“ giją.
+}
+
+void DataLinkWriter::run()
+{
 }

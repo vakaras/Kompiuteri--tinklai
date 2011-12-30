@@ -7,6 +7,7 @@
 #include <QMutex>
 #include <QWaitCondition>
 #include <QList>
+#include <QQueue>
 #include <src/types.h>
 #include <src/interfaces/IPhysicalConnection.h>
 #include <src/interfaces/ILink.h>
@@ -47,26 +48,37 @@ public:
   }
 };
 
+class DataLinkWriter : public QThread
+{
+  Q_OBJECT
+
+private:
+
+  _M DataLink*        m_link;
+  _M bool             m_go;
+
+protected:
+
+  _M void         run();
+
+public:
+  explicit DataLinkWriter(DataLink *link, QObject *parent = 0) :
+    QThread(parent), m_link(link), m_go(true)
+  {
+  }
+  _M void         stop()
+  {
+    m_go = false;
+  }
+};
 
 
-class DataLink : public QObject
+class DataLink : public QObject, public ILink
 {
 
   Q_OBJECT
 
 private:
-
-  _M IPhysicalConnection    *m_connectionIn;
-  _M IPhysicalConnection    *m_connectionOut;
-  _M DataLinkReader         m_reader;
-  _M uint                   m_maxFrameSize;
-                                        // In bytes.
-  _M uint                   m_maxReceivedDataBufferSize;
-                                        // m_maxFrameSize * maxFrameCount
-                                        // In bytes.
-  _M QMutex                 m_receivedDataBufferMutex;
-  _M QWaitCondition         m_receivedDataBufferWaitCondition;
-  _M QList<Byte>            m_receivedDataBuffer;
 
   struct FrameHeader
   {
@@ -90,6 +102,38 @@ private:
       }  __attribute__((packed)) supervisoryControl;
     } __attribute__((packed));
   } __attribute__((packed));
+
+  struct Frame
+  {
+    _Y Byte    *start;
+    _M uint    len;
+    Frame(): start(0), len(0) {}
+    Frame(const Byte *_start, uint _len): start(_start), len(_len) {}
+  };
+
+  _M IPhysicalConnection    *m_connectionIn;
+  _M IPhysicalConnection    *m_connectionOut;
+  _M uint                   m_maxFrameSize;
+                                        // In bytes.
+
+  // Reading.
+  _M DataLinkReader         m_reader;
+  _M uint                   m_maxReceivedDataBufferSize;
+                                        // m_maxFrameSize * maxFrameCount
+                                        // In bytes.
+  _M QMutex                 m_receivedDataBufferMutex;
+  _M QWaitCondition         m_receivedDataBufferWaitCondition;
+  _M QList<Byte>            m_receivedDataBuffer;
+
+  // Writing.
+  _M QMutex                 m_writeFunctionMutex;
+                                        // Guarantees that at concrete
+                                        // moment only one thread tries
+                                        // to write.
+  _M QQueue<Frame>          m_frameQueue;
+  _M QMutex                 m_frameQueueMutex;
+  _M QWaitCondition         m_frameQueueWaitCondition;
+  _M DataLinkWriter         m_writer;
 
   // Writing.
   /**
@@ -130,7 +174,9 @@ public:
                     uint maxFrameCount = 16,
                     QObject *parent = 0);
   _M Vacuum   ~DataLink();
-  _V int      read(Byte *bytes, uint maxlen, ulong time=ULONG_MAX);
+  _M bool     write(const Byte *bytes, uint len);
+  _M int      read(Byte *bytes, uint maxlen, ulong time=ULONG_MAX);
+  _M void     reset();
 
   /*
 
