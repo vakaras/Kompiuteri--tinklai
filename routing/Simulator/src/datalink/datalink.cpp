@@ -2,11 +2,15 @@
 
 DataLink::DataLink(IPhysicalConnection *connectionIn,
                    IPhysicalConnection *connectionOut,
+                   uint maxFrameSize,
+                   uint maxFrameCount,
                    QObject *parent) :
   QObject(parent),
   m_connectionIn(connectionIn),
   m_connectionOut(connectionOut),
-  m_reader(this)
+  m_reader(this),
+  m_maxFrameSize(maxFrameSize),
+  m_maxReceivedDataBufferSize(maxFrameSize * maxFrameCount)
 {
   connectionIn->reset();
   connectionOut->reset();
@@ -73,16 +77,19 @@ void DataLink::parseFrame(QList<Bit> *buffer)
     return;
   }
   FrameHeader header;
-  ushort *p = (ushort*) &header;
+  Byte *p = (Byte*) &header;
   *p = 0;
 
-  for (int i = 0; i < 16; i++)
+  ushort checkSum = 0;
+  for (int i = 15; i >= 0; i--)
   {
-    *p |= buffer->first() << i;
-    buffer->removeFirst();
+    checkSum |= buffer->last() << i;
+    buffer->removeLast();
   }
-  qDebug("%x", *p);
+  qDebug("Checksum: %x", checkSum);
 
+  Byte *receivedBuffer = new Byte[(len >> 3) - 2];
+  int receivedBufferLen = 0;
   int j = 0;
   Byte byte = 0;
   for (auto bit : *buffer)
@@ -91,12 +98,44 @@ void DataLink::parseFrame(QList<Bit> *buffer)
     j++;
     if (j == 8)
     {
+      receivedBuffer[receivedBufferLen++] = byte;
       qDebug("%x", byte);
       byte = 0;
       j = 0;
     }
   }
+  if (qChecksum((char *)receivedBuffer, receivedBufferLen) == checkSum)
+  {
+    // Frame is ok.
+    p[0] = receivedBuffer[0];
+    p[1] = receivedBuffer[1];
+    qDebug("Header: %x%x", p[1], p[0]);
 
+    saveFrame(&header, receivedBuffer + 2, receivedBufferLen - 2);
+  }
+  qDebug("Checksum counted: %x", qChecksum((char *)receivedBuffer, receivedBufferLen));
+
+  delete [] receivedBuffer;
+}
+
+void DataLink::saveFrame(
+  const FrameHeader *header, const Byte *bytes, uint len)
+{
+  if (header->informationControl.frameType == INFORMATION_FRAME)
+  {
+    // TODO: Check and change window.
+    // TODO: Mark that response is needed.
+    m_receivedDataBufferMutex.lock();
+    if (m_receivedDataBuffer.size() + len <= m_maxReceivedDataBufferSize)
+    {
+      for (uint i = 0; i < len; i++)
+      {
+        m_receivedDataBuffer.append(bytes[i]);
+      }
+    }
+    m_receivedDataBufferMutex.unlock();
+    m_receivedDataBufferWaitCondition.wakeOne();
+  }
 }
 
 void DataLinkReader::run()
@@ -166,4 +205,25 @@ void DataLinkReader::run()
 
     lastBit = bit;
   }
+}
+
+int DataLink::read(Byte *bytes, uint maxlen, ulong time)
+{
+  QMutexLocker locker(&m_receivedDataBufferMutex);
+  while (m_receivedDataBuffer.size() == 0)
+  {
+    if (!m_receivedDataBufferWaitCondition.wait(
+          &m_receivedDataBufferMutex, time))
+    {
+      return 0;
+    }
+  }
+  int counter = 0;
+  while (!m_receivedDataBuffer.isEmpty() && maxlen > 0)
+  {
+    bytes[counter++] = m_receivedDataBuffer.first();
+    maxlen--;
+    m_receivedDataBuffer.removeFirst();
+  }
+  return counter;
 }

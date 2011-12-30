@@ -15,10 +15,10 @@ class ILink
     _V bool write(const Byte *bytes, int len) = 0;
 
     /** Receives no more than maxlen bytes.
-      @param block if true, thread blocks while there is no data.
+      @param time if there is no data, returns after;
       @returns amount of received bytes
       */
-    _V int  read(Byte *bytes, int maxlen, bool block=true) = 0;
+    _V int  read(Byte *bytes, uint maxlen, ulong time=ULONG_MAX) = 0;
 
     /** Resets to initial state. */
     _V void reset();

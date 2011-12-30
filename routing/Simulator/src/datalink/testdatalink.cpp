@@ -110,7 +110,14 @@ void TestDataLink::testDecodingFrame()
   ushort *p = (ushort *) &header;
   *p = 0x8CEF;
 
-  Byte data[] = {0xFF, 0xFF, 0xFF};
-  link1.writeFrame(&header, data, 3);
-  QTest::qWait(500);
+  QVERIFY(link2.m_receivedDataBuffer.isEmpty());
+  Byte data[] = {0xAF, 0xDE, 0xAD, 0xBA, 0xBA, 0x3F};
+  link1.writeFrame(&header, data, 6);
+
+  Byte dataReceived[100];
+  QCOMPARE(link2.read(dataReceived, 100), 6);
+  for (int i = 0; i < 6; i++)
+    QCOMPARE(dataReceived[i], data[i]);
+
+
 }

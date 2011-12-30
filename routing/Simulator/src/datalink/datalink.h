@@ -4,10 +4,14 @@
 
 #include <QObject>
 #include <QThread>
+#include <QMutex>
+#include <QWaitCondition>
 #include <QList>
 #include <src/types.h>
 #include <src/interfaces/IPhysicalConnection.h>
 #include <src/interfaces/ILink.h>
+
+#define INFORMATION_FRAME 0x00
 
 
 class TestDataLink;
@@ -55,6 +59,14 @@ private:
   _M IPhysicalConnection    *m_connectionIn;
   _M IPhysicalConnection    *m_connectionOut;
   _M DataLinkReader         m_reader;
+  _M uint                   m_maxFrameSize;
+                                        // In bytes.
+  _M uint                   m_maxReceivedDataBufferSize;
+                                        // m_maxFrameSize * maxFrameCount
+                                        // In bytes.
+  _M QMutex                 m_receivedDataBufferMutex;
+  _M QWaitCondition         m_receivedDataBufferWaitCondition;
+  _M QList<Byte>            m_receivedDataBuffer;
 
   struct FrameHeader
   {
@@ -79,9 +91,24 @@ private:
     } __attribute__((packed));
   } __attribute__((packed));
 
+  // Writing.
+  /**
+    Writes frame into “cabel”.
+    */
   _M void             writeFrame(const FrameHeader *header,
                                  const Byte *bytes, uint len);
+
+  // Reading.
+  /**
+    Extracts frame information from buffer. Makes basic check.
+    */
   _M void             parseFrame(QList<Bit> *buffer);
+  /**
+    If frame is information, saves its data into buffer and sends response.
+    */
+  _M void             saveFrame(const FrameHeader *header,
+                                const Byte *bytes, uint len);
+
 
   /*
 
@@ -99,8 +126,12 @@ public:
 
   explicit DataLink(IPhysicalConnection *connectionIn,
                     IPhysicalConnection *connectionOut,
+                    uint maxFrameSize = 256,
+                    uint maxFrameCount = 16,
                     QObject *parent = 0);
-  _M ~DataLink();
+  _M Vacuum   ~DataLink();
+  _V int      read(Byte *bytes, uint maxlen, ulong time=ULONG_MAX);
+
   /*
 
     Pradžia:
