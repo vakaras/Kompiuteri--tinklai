@@ -11,6 +11,7 @@
 #define _T typedef
 #define _V virtual
 #define _X mutable
+#define _Y const
 
 #define Vacuum
 
