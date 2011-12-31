@@ -1,4 +1,17 @@
 #include "datalink.h"
+#define MODIFY_FRAME_QUEUE(action) \
+      m_link->m_frameQueueMutex.lock(); \
+      m_link->m_frameQueue. action ;\
+      m_link->m_frameQueueMutex.unlock(); \
+      m_link->m_frameQueueWaitCondition.wakeOne();
+
+uint inc(uint &value)
+{
+  uint oldValue = value++;
+  if (value == 8)
+    value = 0;
+  return oldValue;
+}
 
 DataLink::DataLink(IPhysicalConnection *connectionIn,
                    IPhysicalConnection *connectionOut,
@@ -16,12 +29,15 @@ DataLink::DataLink(IPhysicalConnection *connectionIn,
   connectionIn->reset();
   connectionOut->reset();
   m_reader.start();
+  m_writer.start();
 }
 
 DataLink::~DataLink()
 {
   m_reader.stop();
   m_reader.wait();
+  m_writer.stop();
+  m_writer.wait();
 }
 
 void DataLink::writeFrame(
@@ -70,7 +86,7 @@ void DataLink::writeFrame(
 
 void DataLink::parseFrame(QList<Bit> *buffer)
 {
-  qDebug() << "Parsing frame!";
+  qDebug() << "Parsing frame!" << thread();
   uint len = buffer->size();
   if ((len < 32) || (len & 0x7))
   {
@@ -87,7 +103,7 @@ void DataLink::parseFrame(QList<Bit> *buffer)
     checkSum |= buffer->last() << i;
     buffer->removeLast();
   }
-  qDebug("Checksum: %x", checkSum);
+  //qDebug("Checksum: %x", checkSum);
 
   Byte *receivedBuffer = new Byte[(len >> 3) - 2];
   int receivedBufferLen = 0;
@@ -100,7 +116,6 @@ void DataLink::parseFrame(QList<Bit> *buffer)
     if (j == 8)
     {
       receivedBuffer[receivedBufferLen++] = byte;
-      qDebug("%x", byte);
       byte = 0;
       j = 0;
     }
@@ -110,11 +125,12 @@ void DataLink::parseFrame(QList<Bit> *buffer)
     // Frame is ok.
     p[0] = receivedBuffer[0];
     p[1] = receivedBuffer[1];
-    qDebug("Header: %x%x", p[1], p[0]);
+    //qDebug("Header: %x%x", p[1], p[0]);
 
     saveFrame(&header, receivedBuffer + 2, receivedBufferLen - 2);
   }
-  qDebug("Checksum counted: %x", qChecksum((char *)receivedBuffer, receivedBufferLen));
+//qDebug("Checksum counted: %x",
+//       qChecksum((char *)receivedBuffer, receivedBufferLen));
 
   delete [] receivedBuffer;
 }
@@ -124,18 +140,50 @@ void DataLink::saveFrame(
 {
   if (header->informationControl.frameType == INFORMATION_FRAME)
   {
-    // TODO: Check and change window.
-    // TODO: Mark that response is needed.
-    m_receivedDataBufferMutex.lock();
-    if (m_receivedDataBuffer.size() + len <= m_maxReceivedDataBufferSize)
+    qDebug() << "Trying to save frame.";
+    m_lastSequenceNumberReceivedMutex.lock();
+    if (header->informationControl.seq !=
+        (m_lastSequenceNumberReceived + 1) % 8)
     {
-      for (uint i = 0; i < len; i++)
-      {
-        m_receivedDataBuffer.append(bytes[i]);
-      }
+      qDebug() << "Wrong sequence number." << header->informationControl.seq;
+      qDebug() << "Expected" << (m_lastSequenceNumberReceived + 1) % 8;
+      // TODO: Send reject.
     }
-    m_receivedDataBufferMutex.unlock();
-    m_receivedDataBufferWaitCondition.wakeOne();
+    else
+    {
+      m_receivedDataBufferMutex.lock();
+      if (m_receivedDataBuffer.size() + len <= m_maxReceivedDataBufferSize)
+      {
+        for (uint i = 0; i < len; i++)
+        {
+          m_receivedDataBuffer.append(bytes[i]);
+        }
+      }
+      m_receivedDataBufferMutex.unlock();
+      m_receivedDataBufferWaitCondition.wakeOne();
+
+      m_lastSequenceNumberReceived = header->informationControl.seq;
+      m_acknowledgeFrameNeeded = true;
+
+      setWindowLowerBound(header->informationControl.next);
+      qDebug() << "Writer notified" << m_lastSequenceNumberReceived;
+    }
+    m_lastSequenceNumberReceivedMutex.unlock();
+  }
+  else if (header->supervisoryControl.zero == SUPERVISORY_FRAME)
+  {
+    if (header->supervisoryControl.type == RECEIVE_READY)
+    {
+      setWindowLowerBound(header->supervisoryControl.next);
+    }
+    else
+    {
+      qDebug() << "Uknown supervisory frame type.";
+    }
+  }
+  else
+  {
+    qDebug() << "Got unknown frame!";
   }
 }
 
@@ -143,6 +191,10 @@ void DataLinkReader::run()
 {
   qDebug() << "Start";
   State state = Search;
+  m_link->m_lastSequenceNumberReceivedMutex.lock();
+  m_link->m_lastSequenceNumberReceived = 7;
+  m_link->m_acknowledgeFrameNeeded = false;
+  m_link->m_lastSequenceNumberReceivedMutex.unlock();
   QList<Bit> buffer;
   uint count[2];
   count[1] = 0;                         // How many 1 found.
@@ -156,7 +208,6 @@ void DataLinkReader::run()
     {
       continue;
     }
-    qDebug() << "Bit: " << this << bit;
     buffer.append(bit);
     if (lastBit == bit)
     {
@@ -213,6 +264,8 @@ bool DataLink::write(const Byte *bytes, uint len)
   QMutexLocker locker(&m_writeFunctionMutex);
   QMutexLocker locker2(&m_frameQueueMutex);
 
+  m_packetSent = true;
+
   for (uint i = 0; i < len; i += m_maxFrameSize)
   {
     if (i + m_maxFrameSize < len)
@@ -225,7 +278,7 @@ bool DataLink::write(const Byte *bytes, uint len)
   {
     m_frameQueueWaitCondition.wait(&m_frameQueueMutex);
   }
-  return true;
+  return m_packetSent;
 }
 
 int DataLink::read(Byte *bytes, uint maxlen, ulong time)
@@ -257,10 +310,87 @@ void DataLink::reset()
   m_connectionIn->reset();
   m_connectionOut->reset();
   m_receivedDataBuffer.clear();
+
   m_reader.start();
   // TODO: Išvalyti „rašytojo“ giją.
 }
 
 void DataLinkWriter::run()
 {
+
+  QMutexLocker locker(&m_link->m_writerMutex);
+  // TODO: Send U-Frame SNRM.
+  m_link->m_writeWindowLowerBound = 0;
+  m_link->m_writeWindowUpperBound = 0;
+  QList<DataLink::Frame> sendList;
+
+  while (m_go)
+  {
+    qDebug() << "Writer!" << sendList.size() << m_link->m_frameQueue.size();
+    if (!m_link->m_packetSent)
+    {
+      // An error occured. Cancel all operations.
+      sendList.clear();
+      MODIFY_FRAME_QUEUE(clear());
+    }
+    while (!sendList.isEmpty())
+    {
+      qDebug() << "WORKS" << m_link->m_writeWindowLowerBound;
+      if (m_link->m_writeWindowLowerBound ==
+          sendList.first().header.informationControl.seq)
+        break;
+      sendList.removeFirst();
+      MODIFY_FRAME_QUEUE(removeFirst());
+    }
+    while (sendList.size() < m_link->m_frameQueue.size())
+    {
+      if (sendList.size() >= 3)
+        break;
+      sendList.append(m_link->m_frameQueue.at(sendList.size()));
+      sendList.last().header.informationControl.seq =
+          inc(m_link->m_writeWindowUpperBound);
+    }
+    QDateTime now = QDateTime::currentDateTime();
+    m_link->m_lastSequenceNumberReceivedMutex.lock();
+    if (m_link->m_acknowledgeFrameNeeded &&
+        (sendList.isEmpty() ||
+        (!sendList.first().time.isNull() &&
+        sendList.first().time.time().addMSecs(20) > now.time())))
+    {
+      // No information frames for piggybacking.
+      DataLink::FrameHeader header;
+      header.supervisoryControl.frameType = 1;
+      header.supervisoryControl.zero = 0;
+      header.supervisoryControl.type = RECEIVE_READY;
+      header.supervisoryControl.next =
+          (m_link->m_lastSequenceNumberReceived + 1) % 8;
+      qDebug() << "Supervisory next: " << header.supervisoryControl.next;
+      m_link->writeFrame(&header, NULL, 0);
+      m_link->m_acknowledgeFrameNeeded = false;
+    }
+    for (auto it : sendList)
+    {
+      if (!it.time.isNull() && it.time.time().addMSecs(20) > now.time())
+        break;
+      it.header.supervisoryControl.next =
+          m_link->m_lastSequenceNumberReceived + 1;
+      m_link->writeFrame(&it.header, it.start, it.len);
+      it.counter++;
+      it.time = QDateTime::currentDateTime();
+      m_link->m_acknowledgeFrameNeeded = false;
+    }
+    m_link->m_lastSequenceNumberReceivedMutex.unlock();
+
+    m_link->m_writerWaitCondition.wait(&m_link->m_writerMutex, 2000);
+  }
+
+}
+
+void DataLink::setWindowLowerBound(uint value)
+{
+  m_writerMutex.lock();
+  m_writeWindowLowerBound = value;
+  qDebug() << "Updated lower bound:" << value;
+  m_writerMutex.unlock();
+  m_writerWaitCondition.wakeOne();
 }

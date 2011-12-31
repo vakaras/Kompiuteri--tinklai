@@ -8,11 +8,14 @@
 #include <QWaitCondition>
 #include <QList>
 #include <QQueue>
+#include <QDateTime>
 #include <src/types.h>
 #include <src/interfaces/IPhysicalConnection.h>
 #include <src/interfaces/ILink.h>
 
 #define INFORMATION_FRAME 0x00
+#define SUPERVISORY_FRAME 0x00
+#define RECEIVE_READY     0x00
 
 
 class TestDataLink;
@@ -55,7 +58,7 @@ class DataLinkWriter : public QThread
 private:
 
   _M DataLink*        m_link;
-  _M bool             m_go;
+  _M bool             m_go  ;
 
 protected:
 
@@ -82,7 +85,7 @@ private:
 
   struct FrameHeader
   {
-    uint                    address: 8;
+    uint                    address: 8; // Ignored.
     union
     {
       struct
@@ -97,7 +100,7 @@ private:
         uint                     frameType: 1;
         uint                     zero: 1;
         uint                     type: 2;
-        uint                     pf: 1;
+        uint                     pf: 1; // Ignored.
         uint                     next: 3;
       }  __attribute__((packed)) supervisoryControl;
     } __attribute__((packed));
@@ -105,8 +108,12 @@ private:
 
   struct Frame
   {
-    _Y Byte    *start;
-    _M uint    len;
+    _Y Byte         *start;
+    _M uint         len;
+    _M FrameHeader  header;
+    _M uint         counter;            // How many times frame was sent.
+    _M QDateTime    time;               // Time, when frame was last time
+                                        // sent.
     Frame(): start(0), len(0) {}
     Frame(const Byte *_start, uint _len): start(_start), len(_len) {}
   };
@@ -125,7 +132,13 @@ private:
   _M QWaitCondition         m_receivedDataBufferWaitCondition;
   _M QList<Byte>            m_receivedDataBuffer;
 
+  _M bool                   m_acknowledgeFrameNeeded;
+  _M uint                   m_lastSequenceNumberReceived;
+  _M QMutex                 m_lastSequenceNumberReceivedMutex;
+
   // Writing.
+  _M QMutex                 m_writerMutex;
+  _M QWaitCondition         m_writerWaitCondition;
   _M QMutex                 m_writeFunctionMutex;
                                         // Guarantees that at concrete
                                         // moment only one thread tries
@@ -134,6 +147,11 @@ private:
   _M QMutex                 m_frameQueueMutex;
   _M QWaitCondition         m_frameQueueWaitCondition;
   _M DataLinkWriter         m_writer;
+  _M bool                   m_packetSent;
+                                        // True if all frames were
+                                        // successfully sent.
+  _M uint                   m_writeWindowLowerBound;
+  _M uint                   m_writeWindowUpperBound;
 
   // Writing.
   /**
@@ -152,6 +170,7 @@ private:
     */
   _M void             saveFrame(const FrameHeader *header,
                                 const Byte *bytes, uint len);
+  _M void             setWindowLowerBound(uint value);
 
 
   /*
@@ -165,6 +184,7 @@ private:
 
   _F class TestDataLink;
   _F class DataLinkReader;
+  _F class DataLinkWriter;
 
 public:
 

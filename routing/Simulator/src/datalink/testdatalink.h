@@ -17,6 +17,7 @@ private slots:
   _M void   testFrameHeader();
   _M void   testEncodingFrame();
   _M void   testDecodingFrame();
+  _M void   testSendingData();
 
 };
 
