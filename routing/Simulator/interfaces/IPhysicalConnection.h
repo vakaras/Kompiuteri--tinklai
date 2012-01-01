@@ -31,6 +31,11 @@ class IPhysicalConnection
       Blocks client thread for a given number of connection cycles.
       */
     _V void       wait(ulong number=1) = 0;
+
+    /**
+      Returns true, if last cycle nobody were writing to medium.
+      */
+    _V bool       isFree() = 0;
 };
 
 #endif // IPHYSICALCONNECTION_H

@@ -58,7 +58,7 @@ void Cable::processCycle()
     {
       connectionPoint->push(bit);
     }
-    connectionPoint->notify();
+    connectionPoint->notify(writersCount == 0);
   }
   unlockAll();
 }
