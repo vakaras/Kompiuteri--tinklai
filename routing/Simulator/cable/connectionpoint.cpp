@@ -11,7 +11,7 @@ bool ConnectionPoint::write(Bit bit)
   m_bufferOut = bit;
   m_empty = false;
   m_writerWaitCondition.wait(&m_mutex);
-  return m_collision;
+  return !m_collision;
 }
 
 Bit ConnectionPoint::read(ulong time, bool *timeOuted)
@@ -72,4 +72,5 @@ void ConnectionPoint::setCollision(bool collision)
 void ConnectionPoint::push(Bit bit)
 {
   m_bufferIn.enqueue(bit);
+  m_readerWaitCondition.wakeOne();
 }

@@ -1,16 +1,28 @@
 #include "cable.h"
 #include <cstdlib>
 
-Cable::Cable(double errorRate, QObject *parent) :
-    QObject(parent), m_errorRate(errorRate)
+Cable::Cable(double errorRate, ulong sleepTime, QObject *parent) :
+    QObject(parent), m_errorRate(errorRate), m_process(this, sleepTime)
 {
+  m_process.start();
+}
+
+Cable::~Cable()
+{
+  while (!m_connectionPoints.isEmpty())
+  {
+    ConnectionPointPtr p = m_connectionPoints.first();
+    m_connectionPoints.removeFirst();
+    delete p;
+  }
+  m_process.stop();
 }
 
 void Cable::lockAll()
 {
   for (auto connectionPoint : m_connectionPoints)
   {
-    connectionPoint.lock();
+    connectionPoint->lock();
   }
 }
 
@@ -18,7 +30,7 @@ void Cable::unlockAll()
 {
   for (auto connectionPoint : m_connectionPoints)
   {
-    connectionPoint.unlock();
+    connectionPoint->unlock();
   }
 }
 
@@ -29,20 +41,27 @@ void Cable::processCycle()
   uint writersCount = 0;
   for (auto connectionPoint : m_connectionPoints)
   {
-    if (!connectionPoint.isEmpty())
+    if (!connectionPoint->isEmpty())
     {
-      bit += connectionPoint.pop();
+      bit += connectionPoint->pop();
       writersCount++;
     }
   }
   bit ^= (qrand() <= RAND_MAX * m_errorRate);
   for (auto connectionPoint : m_connectionPoints)
   {
-    if (!connectionPoint.isEmpty())
+    if (!connectionPoint->isEmpty())
     {
-      connectionPoint.setCollision(writersCount > 1);
+      connectionPoint->setCollision(writersCount > 1);
     }
-    connectionPoint.push(bit);
+    connectionPoint->push(bit);
   }
   unlockAll();
+}
+
+ConnectionPoint* Cable::createConnectionPoint()
+{
+  ConnectionPointPtr p = new ConnectionPoint();
+  m_connectionPoints.append(p);
+  return p;
 }

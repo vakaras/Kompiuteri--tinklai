@@ -10,11 +10,17 @@ QMAKE_CXXFLAGS += -std=gnu++0x
 
 SOURCES +=                                                  \
   main.cpp                                                  \
+  cable/connectionpoint.cpp                                 \
+  cable/testcable.cpp                                       \
   cable/cable.cpp                                           \
-    cable/connectionpoint.cpp
+  cable/cableprocess.cpp                                    \
+  utils/executor.cpp
 
 HEADERS +=                                                  \
   types.h                                                   \
   interfaces/IPhysicalConnection.h                          \
+  cable/connectionpoint.h                                   \
+  cable/testcable.h                                         \
   cable/cable.h                                             \
-    cable/connectionpoint.h
+  cable/cableprocess.h                                      \
+  utils/executor.h

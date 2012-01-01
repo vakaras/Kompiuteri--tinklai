@@ -9,6 +9,8 @@
 #include <interfaces/IPhysicalConnection.h>
 
 
+class TestCable;
+
 class ConnectionPoint : public QObject, public IPhysicalConnection
 {
 
@@ -26,6 +28,8 @@ private:
   _M QWaitCondition m_readerWaitCondition;
   /// For locking buffers.
   _M QMutex         m_mutex;
+
+  _F class          TestCable;
 
 public:
 
