@@ -54,7 +54,11 @@ void Cable::processCycle()
     {
       connectionPoint->setCollision(writersCount > 1);
     }
-    connectionPoint->push(bit);
+    if (writersCount > 0)
+    {
+      connectionPoint->push(bit);
+    }
+    connectionPoint->notify();
   }
   unlockAll();
 }

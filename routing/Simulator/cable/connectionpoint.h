@@ -29,6 +29,9 @@ private:
   /// For locking buffers.
   _M QMutex         m_mutex;
 
+  /// For waiting.
+  _M QWaitCondition m_cableWaitCondition;
+
   _F class          TestCable;
 
 public:
@@ -39,6 +42,7 @@ public:
   _M bool       write(Bit bit);
   _M Bit        read(ulong time=ULONG_MAX, bool *timeOuted=NULL);
   _M void       reconnect();
+  _M void       wait(ulong number=1);
 
   // Interface for cable.
   _M void       lock();
@@ -52,6 +56,8 @@ public:
   _M void       setCollision(bool collision);
   /// Adds bit to client in buffer.
   _M void       push(Bit bit);
+  /// Notify about the end of cycle.
+  _M void       notify();
 
 };
 

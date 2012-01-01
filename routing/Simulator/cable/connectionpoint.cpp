@@ -42,6 +42,16 @@ void ConnectionPoint::reconnect()
   m_bufferIn.clear();
 }
 
+void ConnectionPoint::wait(ulong number)
+{
+  QMutexLocker locker(&m_mutex);
+  while (number > 0)
+  {
+    m_cableWaitCondition.wait(&m_mutex);
+    number--;
+  }
+}
+
 void ConnectionPoint::lock()
 {
   m_mutex.lock();
@@ -73,4 +83,9 @@ void ConnectionPoint::push(Bit bit)
 {
   m_bufferIn.enqueue(bit);
   m_readerWaitCondition.wakeOne();
+}
+
+void ConnectionPoint::notify()
+{
+  m_cableWaitCondition.wakeOne();
 }

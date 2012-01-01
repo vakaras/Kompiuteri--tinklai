@@ -23,9 +23,14 @@ class IPhysicalConnection
     _V Bit        read(ulong time=ULONG_MAX, bool *timeOuted=NULL) = 0;
 
     /**
-      All information in medium for this client is lost.
+      All information in medium for this client will be lost.
       */
     _V void       reconnect() = 0;
+
+    /**
+      Blocks client thread for a given number of connection cycles.
+      */
+    _V void       wait(ulong number=1) = 0;
 };
 
 #endif // IPHYSICALCONNECTION_H
