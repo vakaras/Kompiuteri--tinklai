@@ -14,7 +14,10 @@ SOURCES +=                                                  \
   cable/testcable.cpp                                       \
   cable/cable.cpp                                           \
   cable/cableprocess.cpp                                    \
-  utils/executor.cpp
+  utils/executor.cpp                                        \
+  macsublayer/macsublayer.cpp                               \
+  macsublayer/macsublayerframe.cpp                          \
+  macsublayer/macreader.cpp
 
 HEADERS +=                                                  \
   types.h                                                   \
@@ -23,4 +26,8 @@ HEADERS +=                                                  \
   cable/testcable.h                                         \
   cable/cable.h                                             \
   cable/cableprocess.h                                      \
-  utils/executor.h
+  utils/executor.h                                          \
+  interfaces/IMACSublayer.h                                 \
+  macsublayer/macsublayer.h                                 \
+  macsublayer/macsublayerframe.h                            \
+  macsublayer/macreader.h
