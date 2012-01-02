@@ -69,6 +69,7 @@ public:
   explicit MACSublayer(IMACSublayer::Address address,
                        IPhysicalConnection *connection,
                        QObject *parent = 0);
+  _M Vacuum   ~MACSublayer();
 
   _M bool     write(IMACSublayer::Address address, Byte *bytes, uint len);
   _M uint     read(IMACSublayer::Address &address, BytePtr &bytes,

@@ -29,7 +29,8 @@ protected:
 
 public:
 
-  explicit MACReader(MACSublayer *layer, QObject *parent = 0);
+  explicit MACReader(MACSublayer *layer, IPhysicalConnection *connection,
+                     QObject *parent = 0);
   _M void                 start();
   _M void                 stop();
 

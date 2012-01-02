@@ -1,8 +1,9 @@
 #include "macreader.h"
 #include <macsublayer/macsublayer.h>
 
-MACReader::MACReader(MACSublayer *layer, QObject *parent) :
-    QThread(parent), m_layer(layer), m_go(false)
+MACReader::MACReader(MACSublayer *layer, IPhysicalConnection *connection,
+                     QObject *parent) :
+    QThread(parent), m_connection(connection), m_layer(layer), m_go(false)
 {
 }
 

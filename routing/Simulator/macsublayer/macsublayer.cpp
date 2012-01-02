@@ -7,8 +7,14 @@ MACSublayer::MACSublayer(
   QObject(parent),
   m_address(address),
   m_connection(connection),
-  m_reader(this)
+  m_reader(this, connection)
 {
+  m_reader.start();
+}
+
+MACSublayer::~MACSublayer()
+{
+  m_reader.stop();
 }
 
 bool MACSublayer::flushBytes(BytePtr bytes, uint len)
@@ -103,6 +109,7 @@ bool MACSublayer::sendFrame(MACFrame *frame)
 
 bool MACSublayer::saveFrame(MACFrame frame)
 {
+  qDebug() << "Save frame";
   QMutexLocker locker(&m_readBufferMutex);
   m_readBuffer.append(frame);
   m_readBufferWaitCondition.wakeOne();
@@ -177,6 +184,7 @@ bool MACSublayer::write(
   IMACSublayer::Address address, Byte *bytes, uint len)
 {
   QMutexLocker locker(&m_writeMethodMutex);
+  qDebug() << "Writing address:" << address << m_address;
   MACFrame frame(address, m_address, len, bytes);
   return sendFrame(&frame);
 }
@@ -203,7 +211,6 @@ void MACSublayer::reconnect()
   QMutexLocker locker1(&m_writeMethodMutex);
   QMutexLocker locker2(&m_readBufferMutex);
   m_reader.stop();
-  m_reader.wait();
   m_readBuffer.clear();
   m_connection->reconnect();
   m_reader.start();
