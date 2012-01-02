@@ -31,7 +31,7 @@ private:
 
   /// For waiting.
   _M QWaitCondition m_cableWaitCondition;
-  _M bool           m_mediumWasFree;
+  _M uint           m_mediumWasFree;
 
   _F class          TestCable;
 
@@ -44,7 +44,7 @@ public:
   _M Bit        read(ulong time=ULONG_MAX, bool *timeOuted=NULL);
   _M void       reconnect();
   _M void       wait(ulong number=1);
-  _M bool       isFree();
+  _M bool       isFree(uint cycles=1);
 
   // Interface for cable.
   _M void       lock();

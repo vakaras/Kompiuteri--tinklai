@@ -33,9 +33,10 @@ class IPhysicalConnection
     _V void       wait(ulong number=1) = 0;
 
     /**
-      Returns true, if last cycle nobody were writing to medium.
+      Returns true, if number for a number of “cycles” nobody were writing
+      to medium.
       */
-    _V bool       isFree() = 0;
+    _V bool       isFree(uint cycles=1) = 0;
 };
 
 #endif // IPHYSICALCONNECTION_H

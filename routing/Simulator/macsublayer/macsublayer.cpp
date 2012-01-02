@@ -1,4 +1,5 @@
 #include "macsublayer.h"
+#include <utils/random.h>
 
 MACSublayer::MACSublayer(
   IMACSublayer::Address address,
@@ -91,9 +92,9 @@ bool MACSublayer::sendFrame(MACFrame *frame)
   for (int counter = 0; counter < 16; counter++)
   {
     // Wait for a moment, when nobody writes to medium.
-    while (!m_connection->isFree())
+    while (!m_connection->isFree(10))
     {
-      m_connection->wait();
+      m_connection->wait(10);
     }
     // Now try to write.
     if (flushBytes(bytes, len))
@@ -101,10 +102,13 @@ bool MACSublayer::sendFrame(MACFrame *frame)
       return true;
     }
     // Collision occured. Wait for a random period.
+    uint waitPeriod;
     if (counter > 10)
-      m_connection->wait(qrand() % (1 << 10));
+      waitPeriod = random(1 << 10);
     else
-      m_connection->wait(qrand() % (1 << counter));
+      waitPeriod = random(1 << counter);
+    qDebug() << "Wait: " << waitPeriod;
+    m_connection->wait(waitPeriod);
   }
 
   return false;

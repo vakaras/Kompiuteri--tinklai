@@ -52,10 +52,10 @@ void ConnectionPoint::wait(ulong number)
   }
 }
 
-bool ConnectionPoint::isFree()
+bool ConnectionPoint::isFree(uint cycles)
 {
   QMutexLocker locker(&m_mutex);
-  return m_mediumWasFree;
+  return m_mediumWasFree >= cycles;
 }
 
 void ConnectionPoint::lock()
@@ -93,6 +93,9 @@ void ConnectionPoint::push(Bit bit)
 
 void ConnectionPoint::notify(bool free)
 {
-  m_mediumWasFree = free;
+  if (free)
+    m_mediumWasFree++;
+  else
+    m_mediumWasFree = 0;
   m_cableWaitCondition.wakeOne();
 }
