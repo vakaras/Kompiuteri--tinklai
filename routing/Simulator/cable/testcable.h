@@ -2,7 +2,6 @@
 #define TESTCABLE_H
 
 #include <QtTest/QTest>
-#include <QThread>
 #include <cable/cable.h>
 
 class TestCable : public QObject
