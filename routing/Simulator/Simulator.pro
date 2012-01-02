@@ -17,7 +17,9 @@ SOURCES +=                                                  \
   utils/executor.cpp                                        \
   macsublayer/macsublayer.cpp                               \
   macsublayer/macsublayerframe.cpp                          \
-  macsublayer/macreader.cpp
+  macsublayer/macreader.cpp                                 \
+  macsublayer/testmacsublayer.cpp                           \
+  utils/random.cpp
 
 HEADERS +=                                                  \
   types.h                                                   \
@@ -30,4 +32,6 @@ HEADERS +=                                                  \
   interfaces/IMACSublayer.h                                 \
   macsublayer/macsublayer.h                                 \
   macsublayer/macsublayerframe.h                            \
-  macsublayer/macreader.h
+  macsublayer/macreader.h                                   \
+  macsublayer/testmacsublayer.h                             \
+  utils/random.h

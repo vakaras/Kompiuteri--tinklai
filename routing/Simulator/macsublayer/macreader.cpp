@@ -64,7 +64,7 @@ void MACReader::run()
               if (!buffer.isEmpty())
                 buffer.removeLast();
             }
-            qDebug() << "Saving data: " << m_layer->save(buffer);
+            m_layer->save(buffer);
             state = Read;
             buffer.clear();
           }

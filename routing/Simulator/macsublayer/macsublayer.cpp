@@ -107,7 +107,6 @@ bool MACSublayer::sendFrame(MACFrame *frame)
       waitPeriod = random(1 << 10);
     else
       waitPeriod = random(1 << counter);
-    qDebug() << "Wait: " << waitPeriod;
     m_connection->wait(waitPeriod);
   }
 
@@ -116,7 +115,6 @@ bool MACSublayer::sendFrame(MACFrame *frame)
 
 bool MACSublayer::saveFrame(MACFrame frame)
 {
-  qDebug() << "Save frame";
   QMutexLocker locker(&m_readBufferMutex);
   m_readBuffer.append(frame);
   m_readBufferWaitCondition.wakeOne();
@@ -191,7 +189,6 @@ bool MACSublayer::write(
   IMACSublayer::Address address, Byte *bytes, uint len)
 {
   QMutexLocker locker(&m_writeMethodMutex);
-  qDebug() << "Writing address:" << address << m_address;
   MACFrame frame(address, m_address, len, bytes);
   return sendFrame(&frame);
 }
@@ -210,6 +207,7 @@ uint MACSublayer::read(
   MACFrame frame = m_readBuffer.first();
   bytes = BytePtr(frame.m_data);
   address = frame.m_sourceAddress;
+  m_readBuffer.removeFirst();
   return frame.m_length;
 }
 
