@@ -21,7 +21,6 @@ void MACReader::stop()
 
 void MACReader::run()
 {
-  qDebug() << "Start";
   State state = Search;
   QList<Bit> buffer;
   uint count[2];
@@ -42,18 +41,16 @@ void MACReader::run()
     {
       if (bit == 0)
       {
-        if (count[1] == 5)
+        if (count[1] == 5 && !buffer.isEmpty())
         {
           // Removing stuffed bit.
-          buffer.pop_back();
+          buffer.removeLast();
         }
         else if (count[1] == 6)
         {
-          qDebug() << "Found marker";
           // We have found marker: 0111 1110.
           if (state == Search)
           {
-            qDebug() << "Clear buffer. New frame begins.";
             // Frame begins.
             state = Read;
             buffer.clear();
@@ -62,9 +59,12 @@ void MACReader::run()
           {
             // One frame ends, other begins.
             for (int i = 0; i < 8; i++)
+            {
               // Remove marker byte.
-              buffer.pop_back();
-            m_layer->save(buffer);
+              if (!buffer.isEmpty())
+                buffer.removeLast();
+            }
+            qDebug() << "Saving data: " << m_layer->save(buffer);
             state = Read;
             buffer.clear();
           }

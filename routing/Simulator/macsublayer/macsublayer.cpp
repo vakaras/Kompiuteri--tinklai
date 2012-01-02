@@ -101,7 +101,10 @@ bool MACSublayer::sendFrame(MACFrame *frame)
       return true;
     }
     // Collision occured. Wait for a random period.
-    m_connection->wait(qrand() % ((1 << counter) & 0x3ff));
+    if (counter > 10)
+      m_connection->wait(qrand() % (1 << 10));
+    else
+      m_connection->wait(qrand() % (1 << counter));
   }
 
   return false;
