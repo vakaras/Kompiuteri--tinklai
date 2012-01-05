@@ -9,12 +9,9 @@ Cable::Cable(double errorRate, ulong sleepTime, QObject *parent) :
 
 Cable::~Cable()
 {
-  while (!m_connectionPoints.isEmpty())
-  {
-    ConnectionPointPtr p = m_connectionPoints.first();
-    m_connectionPoints.removeFirst();
-    delete p;
-  }
+  Q_ASSERT(m_connectionPoints.isEmpty());
+                                        // Cabel must be deleted after
+                                        // all clients.
   m_process.stop();
 }
 
@@ -31,6 +28,22 @@ void Cable::unlockAll()
   for (auto connectionPoint : m_connectionPoints)
   {
     connectionPoint->unlock();
+  }
+}
+
+void Cable::deleteUnused()
+{
+  ConnectionPointList toDelete;
+  for (auto connectionPoint : m_connectionPoints)
+  {
+    if (connectionPoint.unique())
+    {
+      toDelete.append(connectionPoint);
+    }
+  }
+  for (auto connectionPoint : toDelete)
+  {
+    m_connectionPoints.removeOne(connectionPoint);
   }
 }
 
@@ -63,9 +76,9 @@ void Cable::processCycle()
   unlockAll();
 }
 
-ConnectionPoint* Cable::createConnectionPoint()
+Cable::ConnectionPointPtr Cable::createConnectionPoint()
 {
-  ConnectionPointPtr p = new ConnectionPoint();
+  ConnectionPointPtr p(new ConnectionPoint());
   m_connectionPoints.append(p);
   return p;
 }

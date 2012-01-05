@@ -19,17 +19,17 @@ private:
                                         // next frame.
     Read                                // Reading frame.
     };
-  _M IPhysicalConnection* m_connection;
-  _M MACSublayer*         m_layer;
-  _M bool                 m_go;
+  _M IPhysicalConnectionPtr   m_connection;
+  _M MACSublayer*             m_layer;
+  _M bool                     m_go;
 
 protected:
 
-  _M void                 run();
+  _M void                     run();
 
 public:
 
-  explicit MACReader(MACSublayer *layer, IPhysicalConnection *connection,
+  explicit MACReader(MACSublayer *layer, IPhysicalConnectionPtr connection,
                      QObject *parent = 0);
   _M void                 start();
   _M void                 stop();

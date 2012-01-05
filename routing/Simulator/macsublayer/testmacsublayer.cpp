@@ -25,6 +25,27 @@ void TestMACSublayer::testInit()
 
 }
 
+void TestMACSublayer::testDeletingCableClient()
+{
+  Cable cable(0.0, 0);
+  MACSublayer *layer1 = new MACSublayer(1, cable.createConnectionPoint());
+  MACSublayer *layer2 = new MACSublayer(2, cable.createConnectionPoint());
+
+  Byte data[] = {0xbb, 0xFF, 0xFF, 0xFF, 0xcc};
+  QCOMPARE(layer1->write(2, data, 5), true);
+  delete layer1;
+
+  IMACSublayer::Address address;
+  BytePtr bytes;
+  QCOMPARE(layer2->read(address, bytes), 5u);
+  QCOMPARE(address, 1u);
+  int i = 0;
+  for (auto it : data)
+    QCOMPARE(*(bytes.get() + i++), it);
+  QCOMPARE(layer2->read(address, bytes, 0), 0u);
+  delete layer2;
+}
+
 void TestMACSublayer::testCollision()
 {
   Cable cable(0.0, 0);

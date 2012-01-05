@@ -3,7 +3,7 @@
 
 MACSublayer::MACSublayer(
   IMACSublayer::Address address,
-  IPhysicalConnection* connection,
+  IPhysicalConnectionPtr connection,
   QObject *parent) :
   QObject(parent),
   m_address(address),

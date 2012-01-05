@@ -12,18 +12,23 @@ class Cable : public QObject
 
   Q_OBJECT
 
+public:
+
+  _T std::shared_ptr<ConnectionPoint> ConnectionPointPtr;
+  _T QList<ConnectionPointPtr>        ConnectionPointList;
+
 private:
 
-  _T ConnectionPoint*             ConnectionPointPtr;
-  _T QList<ConnectionPointPtr>    ConnectionPointList;
-  _M ConnectionPointList          m_connectionPoints;
-  _M double                       m_errorRate;
-  _M CableProcess                 m_process;
+  _M ConnectionPointList              m_connectionPoints;
+  _M double                           m_errorRate;
+  _M CableProcess                     m_process;
 
   /// Locks all connection points.
   _M void                   lockAll();
   /// Unlocks all connection points.
   _M void                   unlockAll();
+  /// Deletes all connection points, which are not used.
+  _M void                   deleteUnused();
 
 public:
 
@@ -33,7 +38,7 @@ public:
 
   /// Processes one bit writing cycle.
   _M void                   processCycle();
-  _M ConnectionPoint*       createConnectionPoint();
+  _M ConnectionPointPtr     createConnectionPoint();
 
 };
 

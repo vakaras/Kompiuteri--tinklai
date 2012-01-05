@@ -24,7 +24,7 @@ private:
   /// Node MAC address.
   _M IMACSublayer::Address  m_address;
 
-  _M IPhysicalConnection*   m_connection;
+  _M IPhysicalConnectionPtr m_connection;
 
   // For sending data.
   _M QMutex                 m_writeMethodMutex;
@@ -67,7 +67,7 @@ public:
   _M bool                   save(BitList bits);
 
   explicit MACSublayer(IMACSublayer::Address address,
-                       IPhysicalConnection *connection,
+                       IPhysicalConnectionPtr connection,
                        QObject *parent = 0);
   _M Vacuum   ~MACSublayer();
 

@@ -39,4 +39,6 @@ class IPhysicalConnection
     _V bool       isFree(uint cycles=1) = 0;
 };
 
+typedef std::shared_ptr<IPhysicalConnection>  IPhysicalConnectionPtr;
+
 #endif // IPHYSICALCONNECTION_H

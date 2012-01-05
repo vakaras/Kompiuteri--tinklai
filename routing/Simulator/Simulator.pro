@@ -4,6 +4,7 @@ TARGET = Simulator
 CONFIG += console
 CONFIG -= app_bundle
 TEMPLATE = app
+DEFINES += QT_FATAL_ASSERT
 
 
 QMAKE_CXXFLAGS += -std=gnu++0x

@@ -5,9 +5,9 @@
 void TestCable::testOneWriter()
 {
   Cable cable(0.0, 0);
-  ConnectionPoint* cp1 = cable.createConnectionPoint();
-  ConnectionPoint* cp2 = cable.createConnectionPoint();
-  ConnectionPoint* cp3 = cable.createConnectionPoint();
+  IPhysicalConnectionPtr cp1 = cable.createConnectionPoint();
+  IPhysicalConnectionPtr cp2 = cable.createConnectionPoint();
+  IPhysicalConnectionPtr cp3 = cable.createConnectionPoint();
 
   auto write1 = [&]()
   {
@@ -21,16 +21,15 @@ void TestCable::testOneWriter()
   QCOMPARE(cp3->read(), 1);
 
   cp1->wait(3);
-
   writer1.wait();
 }
 
 void TestCable::testCollision()
 {
   Cable cable(0.0, 500);
-  ConnectionPoint* cp1 = cable.createConnectionPoint();
-  ConnectionPoint* cp2 = cable.createConnectionPoint();
-  ConnectionPoint* cp3 = cable.createConnectionPoint();
+  IPhysicalConnectionPtr cp1 = cable.createConnectionPoint();
+  IPhysicalConnectionPtr cp2 = cable.createConnectionPoint();
+  IPhysicalConnectionPtr cp3 = cable.createConnectionPoint();
 
   Executor writer1([&]() { QCOMPARE(cp1->write(0), false); });
   Executor writer2([&]() { QCOMPARE(cp2->write(1), false); });
