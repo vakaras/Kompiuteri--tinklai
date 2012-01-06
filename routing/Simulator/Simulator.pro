@@ -21,6 +21,7 @@ SOURCES +=                                                  \
   macsublayer/macsublayerframe.cpp                          \
   macsublayer/macreader.cpp                                 \
   macsublayer/testmacsublayer.cpp                           \
+  llcsublayer/llcsublayer.cpp
 
 HEADERS +=                                                  \
   types.h                                                   \
@@ -33,8 +34,10 @@ HEADERS +=                                                  \
   cable/cable.h                                             \
   cable/cableprocess.h                                      \
   interfaces/IMACSublayer.h                                 \
+  interfaces/ILLCSublayer.h                                 \
   macsublayer/macsublayer.h                                 \
   macsublayer/macsublayerframe.h                            \
   macsublayer/macreader.h                                   \
   macsublayer/testmacsublayer.h                             \
+  llcsublayer/llcsublayer.h                                 \
 
