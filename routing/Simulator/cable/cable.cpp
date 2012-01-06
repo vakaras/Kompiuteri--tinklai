@@ -9,14 +9,16 @@ Cable::Cable(double errorRate, ulong sleepTime, QObject *parent) :
 
 Cable::~Cable()
 {
+  m_process.stop();
+  QMutexLocker locker(&m_connectionPointsMutex);
   Q_ASSERT(m_connectionPoints.isEmpty());
                                         // Cabel must be deleted after
                                         // all clients.
-  m_process.stop();
 }
 
 void Cable::lockAll()
 {
+  m_connectionPointsMutex.lock();
   for (auto connectionPoint : m_connectionPoints)
   {
     connectionPoint->lock();
@@ -29,6 +31,7 @@ void Cable::unlockAll()
   {
     connectionPoint->unlock();
   }
+  m_connectionPointsMutex.unlock();
 }
 
 void Cable::deleteUnused()
@@ -50,6 +53,7 @@ void Cable::deleteUnused()
 void Cable::processCycle()
 {
   lockAll();
+  deleteUnused();
   Bit bit = 0;
   uint writersCount = 0;
   for (auto connectionPoint : m_connectionPoints)
@@ -78,6 +82,7 @@ void Cable::processCycle()
 
 Cable::ConnectionPointPtr Cable::createConnectionPoint()
 {
+  QMutexLocker locker(&m_connectionPointsMutex);
   ConnectionPointPtr p(new ConnectionPoint());
   m_connectionPoints.append(p);
   return p;

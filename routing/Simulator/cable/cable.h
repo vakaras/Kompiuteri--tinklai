@@ -2,6 +2,7 @@
 #define CABLE_H
 
 #include <QObject>
+#include <QMutex>
 #include <types.h>
 #include <cable/connectionpoint.h>
 #include <cable/cableprocess.h>
@@ -20,6 +21,7 @@ public:
 private:
 
   _M ConnectionPointList              m_connectionPoints;
+  _M QMutex                           m_connectionPointsMutex;
   _M double                           m_errorRate;
   _M CableProcess                     m_process;
 
