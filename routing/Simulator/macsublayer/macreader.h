@@ -2,6 +2,7 @@
 #define MACREADER_H
 
 #include <QThread>
+#include <QMutex>
 #include <interfaces/IPhysicalConnection.h>
 #include <types.h>
 
@@ -22,6 +23,14 @@ private:
   _M IPhysicalConnectionPtr   m_connection;
   _M MACSublayer*             m_layer;
   _M bool                     m_go;
+  _M QMutex                   m_goMutex;
+
+  _M State                    m_state;
+  _M QList<Bit>               m_buffer;
+  _M uint                     m_count[2];
+
+  _M void                     analyseBitChange(Bit bit);
+  _M void                     markerFoundAction();
 
 protected:
 
