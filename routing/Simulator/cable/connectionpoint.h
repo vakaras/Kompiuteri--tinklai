@@ -41,7 +41,8 @@ public:
 
   // Interface for client.
   _M bool       write(Bit bit);
-  _M Bit        read(ulong time=ULONG_MAX, bool *timeOuted=NULL);
+  _M Bit        read(ulong time, bool *timeOuted);
+  _M Bit        read();
   _M void       reconnect();
   _M void       wait(ulong number=1);
   _M bool       isFree(uint cycles=1);

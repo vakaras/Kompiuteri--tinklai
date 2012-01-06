@@ -1,7 +1,8 @@
 #include "connectionpoint.h"
 
 ConnectionPoint::ConnectionPoint(QObject *parent) :
-    QObject(parent), m_empty(true)
+    QObject(parent), m_bufferOut(0), m_empty(true),
+    m_collision(true), m_mediumWasFree(0)
 {
 }
 
@@ -14,25 +15,25 @@ bool ConnectionPoint::write(Bit bit)
   return !m_collision;
 }
 
+Bit ConnectionPoint::read()
+{
+  bool timeOuted = false;
+  return read(ULONG_MAX, &timeOuted);
+}
+
 Bit ConnectionPoint::read(ulong time, bool *timeOuted)
 {
   QMutexLocker locker(&m_mutex);
   while (m_bufferIn.size() == 0)
+  {
+    if (!m_readerWaitCondition.wait(&m_mutex, time))
     {
-      if (!m_readerWaitCondition.wait(&m_mutex, time))
-      {
-        if (timeOuted)
-        {
-          *timeOuted = true;
-        }
-        return 0;
-      }
+      *timeOuted = true;
+      return 0;
     }
-    if (timeOuted)
-    {
-      *timeOuted = false;
-    }
-    return m_bufferIn.dequeue();
+  }
+  *timeOuted = false;
+  return m_bufferIn.dequeue();
 }
 
 void ConnectionPoint::reconnect()

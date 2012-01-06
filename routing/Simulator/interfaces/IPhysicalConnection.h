@@ -20,7 +20,12 @@ class IPhysicalConnection
       Reads bit from medium. If there is nobody writing, than returns
       after time miliseconds.
       */
-    _V Bit        read(ulong time=ULONG_MAX, bool *timeOuted=NULL) = 0;
+    _V Bit        read(ulong time, bool *timeOuted) = 0;
+
+    /**
+      Reads bit from medium.
+      */
+    _V Bit        read() = 0;
 
     /**
       All information in medium for this client will be lost.
