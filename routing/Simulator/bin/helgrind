@@ -1,0 +1,8 @@
+#!/bin/bash
+
+export G_DEBUG=gc-friendly
+export G_SLICE=always-malloc
+
+valgrind \
+  --tool=helgrind --log-file=helgrind.log \
+  ../Simulator-build-desktop/Simulator 
