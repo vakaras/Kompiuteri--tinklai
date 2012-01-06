@@ -4,7 +4,9 @@
 
 #include <types.h>
 
-/** Class for sending frames. */
+#define MAC_BROADCAST_ADDRESS   0xFFFF
+
+
 class IMACSublayer
 {
 

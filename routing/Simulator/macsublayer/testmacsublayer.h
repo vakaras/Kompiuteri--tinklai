@@ -14,6 +14,7 @@ class TestMACSublayer : public QObject
 private slots:
 
   _M void       testInit();
+  _M void       testReadBeforeWrite();
   _M void       testDeletingCableClient();
   _M void       testCollision();
 

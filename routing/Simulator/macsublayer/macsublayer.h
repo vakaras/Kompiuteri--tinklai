@@ -11,8 +11,6 @@
 #include <macsublayer/macsublayerframe.h>
 #include <macsublayer/macreader.h>
 
-#define BROADCAST_ADDRESS   0xFFFF
-
 
 class MACSublayer : public QObject, public IMACSublayer
 {
@@ -58,6 +56,8 @@ private:
     Stores byte sequence as frame into read buffer.
     */
   _M bool                   save(Byte *bytes, uint len);
+
+  _M void                   clearReadBuffer();
 
 public:
 

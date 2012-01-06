@@ -16,6 +16,17 @@ MACSublayer::MACSublayer(
 MACSublayer::~MACSublayer()
 {
   m_reader.stop();
+  clearReadBuffer();
+}
+
+void MACSublayer::clearReadBuffer()
+{
+  while (!m_readBuffer.isEmpty())
+  {
+    MACFrame frame = m_readBuffer.first();
+    delete [] frame.m_data;
+    m_readBuffer.removeFirst();
+  }
 }
 
 bool MACSublayer::flushBytes(BytePtr bytes, uint len)
@@ -29,13 +40,13 @@ bool MACSublayer::flushBytes(BytePtr bytes, uint len)
     for (int i = 0; i < 8; i++)
     {
       Bit bit = (bytes.get()[j] >> i) & 1;
-      m_connection->write(bit);
+      successful &= m_connection->write(bit);
       if (bit == 1)
       {
         counter++;
         if (counter == 5)
         {
-          m_connection->write(0);
+          successful &= m_connection->write(0);
           counter = 0;
         }
       }
@@ -59,7 +70,7 @@ uint MACSublayer::formFrame(MACFrame *frame, BytePtr &bytes)
     len = MAC_FRAME_SIZE_MIN;
   }
   Byte *pointer = new Byte[len];
-  bytes = BytePtr(pointer);
+  bytes = BytePtr(pointer, sharedArrayDeleter<Byte>);
 
   uint index = 0;
   pointer[index++] = 0xaa;
@@ -145,7 +156,7 @@ bool MACSublayer::save(Byte *bytes, uint len)
   {
     *p = bytes[index++];
   }
-  if (frame.m_destinationAddress != BROADCAST_ADDRESS &&
+  if (frame.m_destinationAddress != MAC_BROADCAST_ADDRESS &&
       frame.m_destinationAddress != m_address)
   {
     return false;
@@ -205,18 +216,23 @@ uint MACSublayer::read(
     }
   }
   MACFrame frame = m_readBuffer.first();
-  bytes = BytePtr(frame.m_data);
+  bytes = BytePtr(frame.m_data, sharedArrayDeleter<Byte>);
   address = frame.m_sourceAddress;
   m_readBuffer.removeFirst();
+  if (address == m_address)
+  {
+    // If it is my frame.
+    return 0;
+  }
   return frame.m_length;
 }
 
 void MACSublayer::reconnect()
 {
+  m_reader.stop();
   QMutexLocker locker1(&m_writeMethodMutex);
   QMutexLocker locker2(&m_readBufferMutex);
-  m_reader.stop();
-  m_readBuffer.clear();
+  clearReadBuffer();
   m_connection->reconnect();
   m_reader.start();
 }

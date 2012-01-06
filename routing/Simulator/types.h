@@ -17,6 +17,8 @@
 
 #define Vacuum
 
+#include <utils/sharedarraydeleter.h>
+
 typedef unsigned char             Byte;
 typedef bool                      Bit;
 
