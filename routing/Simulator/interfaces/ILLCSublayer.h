@@ -36,5 +36,6 @@ class ILLCSublayer
 
 };
 
+typedef std::shared_ptr<ILLCSublayer>  ILLCSublayerPtr;
 
 #endif // ILLCSUBLAYER_H

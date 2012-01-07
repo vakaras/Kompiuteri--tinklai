@@ -21,6 +21,7 @@
 
 typedef unsigned char             Byte;
 typedef bool                      Bit;
+typedef qint64                    MSec;
 
 typedef std::shared_ptr<Byte>     BytePtr;
 typedef QList<Bit>                BitList;

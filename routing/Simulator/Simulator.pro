@@ -21,7 +21,11 @@ SOURCES +=                                                  \
   macsublayer/macsublayerframe.cpp                          \
   macsublayer/macreader.cpp                                 \
   macsublayer/testmacsublayer.cpp                           \
-  llcsublayer/llcsublayer.cpp
+  llcsublayer/llcsublayer.cpp                               \
+  networklayer/networklayer.cpp                             \
+  networklayer/neighbourinfo.cpp                            \
+  networklayer/testnetworklayer.cpp                         \
+  networklayer/routingprocess.cpp                           \
 
 HEADERS +=                                                  \
   types.h                                                   \
@@ -29,15 +33,20 @@ HEADERS +=                                                  \
   utils/executor.h                                          \
   utils/sharedarraydeleter.h                                \
   interfaces/IPhysicalConnection.h                          \
+  interfaces/IMACSublayer.h                                 \
+  interfaces/ILLCSublayer.h                                 \
+  interfaces/INetworkLayer.h                                \
   cable/connectionpoint.h                                   \
   cable/testcable.h                                         \
   cable/cable.h                                             \
   cable/cableprocess.h                                      \
-  interfaces/IMACSublayer.h                                 \
-  interfaces/ILLCSublayer.h                                 \
   macsublayer/macsublayer.h                                 \
   macsublayer/macsublayerframe.h                            \
   macsublayer/macreader.h                                   \
   macsublayer/testmacsublayer.h                             \
   llcsublayer/llcsublayer.h                                 \
+  networklayer/networklayer.h                               \
+  networklayer/neighbourinfo.h                              \
+  networklayer/testnetworklayer.h                           \
+  networklayer/routingprocess.h                             \
 
