@@ -29,6 +29,7 @@ SOURCES +=                                                  \
   networklayer/helloneighbourpacket.cpp                     \
   networklayer/networkreader.cpp                            \
   networklayer/connectionwrapper.cpp                        \
+  networklayer/neighbourinfopacket.cpp                      \
 
 HEADERS +=                                                  \
   types.h                                                   \
@@ -55,4 +56,4 @@ HEADERS +=                                                  \
   networklayer/helloneighbourpacket.h                       \
   networklayer/networkreader.h                              \
   networklayer/connectionwrapper.h                          \
-
+  networklayer/neighbourinfopacket.h                        \

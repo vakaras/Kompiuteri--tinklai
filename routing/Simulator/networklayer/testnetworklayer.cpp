@@ -17,11 +17,15 @@ void TestNetworkLayer::testInit()
   NetworkLayer ntlayer2(2);
   NetworkLayer ntlayer3(3);
 
+  qDebug() << "NT1:" << &ntlayer1;
+  qDebug() << "NT2:" << &ntlayer2;
+  qDebug() << "NT3:" << &ntlayer3;
+
   qDebug() << "W1";
   ntlayer1.append(llc1);
   ntlayer2.append(llc2);
   ntlayer3.append(llc3);
   qDebug() << "W2";
 
-  QTest::qWait(1000);
+  QTest::qWait(8000);
 }

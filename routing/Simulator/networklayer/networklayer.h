@@ -26,7 +26,8 @@ public:
   {
     Unset,
     HelloRequest,
-    HelloAnswer
+    HelloAnswer,
+    NeighbourInfo
   };
 
 private:
@@ -48,6 +49,11 @@ private:
   _M MSec                   m_calculationExpires;
   _M QMutex                 m_calculationExpiresMutex;
 
+  /*
+    Neighbours info sequence number.
+    */
+  _M uint                   m_sequenceNumber;
+
   _F class                  RoutingProcess;
   _M RoutingProcess         m_routingProcess;
   _M QMutex                 m_routingProcessMutex;
@@ -59,6 +65,7 @@ private:
 
   _M void                   removeOldNeighbours();
   _M void                   helloNeighbours();
+  _M void                   sendNeighboursList();
 
   _F class                  NetworkReader;
 
@@ -71,6 +78,10 @@ private:
                               const IMACSublayer::Address &address,
                               BytePtr bytes, uint len);
   _M void                   parseHelloAnswer(
+                              ILLCSublayerPtr connection,
+                              const IMACSublayer::Address &address,
+                              BytePtr bytes, uint len);
+  _M void                   parseNeighbourList(
                               ILLCSublayerPtr connection,
                               const IMACSublayer::Address &address,
                               BytePtr bytes, uint len);
