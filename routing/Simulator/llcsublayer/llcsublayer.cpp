@@ -25,3 +25,8 @@ void LLCSublayer::reconnect()
 {
   m_mac->reconnect();
 }
+
+LLCSublayer::Address LLCSublayer::getAddress()
+{
+  return m_mac->getAddress();
+}

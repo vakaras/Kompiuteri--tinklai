@@ -66,15 +66,16 @@ public:
     */
   _M bool                   save(BitList bits);
 
-  explicit MACSublayer(IMACSublayer::Address address,
+  explicit MACSublayer(Address address,
                        IPhysicalConnectionPtr connection,
                        QObject *parent = 0);
   _M Vacuum   ~MACSublayer();
 
-  _M bool     write(IMACSublayer::Address address, Byte *bytes, uint len);
-  _M uint     read(IMACSublayer::Address &address, BytePtr &bytes,
+  _M bool     write(Address address, Byte *bytes, uint len);
+  _M uint     read(Address &address, BytePtr &bytes,
                    ulong time=ULONG_MAX);
   _M void     reconnect();
+  _M Address  getAddress();
 
 };
 

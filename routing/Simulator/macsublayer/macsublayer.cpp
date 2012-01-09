@@ -236,3 +236,8 @@ void MACSublayer::reconnect()
   m_connection->reconnect();
   m_reader.start();
 }
+
+MACSublayer::Address MACSublayer::getAddress()
+{
+  return m_address;
+}

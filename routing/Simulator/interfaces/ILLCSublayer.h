@@ -10,10 +10,12 @@ class ILLCSublayer
 
   public:
 
+    _T IMACSublayer::Address  Address;
+
     /**
       Tries to send byte sequence to given address.
       */
-    _V bool     send(IMACSublayer::Address, Byte *bytes, uint len) = 0;
+    _V bool     send(Address, Byte *bytes, uint len) = 0;
 
     /**
       Broadcasts byte sequence to all connected to same medium.
@@ -26,13 +28,18 @@ class ILLCSublayer
       @param address – addresss from which data arrived;
       @returns a number of bytes received;
       */
-    _V uint     receive(IMACSublayer::Address &address,
+    _V uint     receive(Address &address,
                         BytePtr &bytes, ulong time=ULONG_MAX) = 0;
 
     /**
       All information currently in progress will be lost.
       */
     _V void     reconnect() = 0;
+
+    /**
+      @returns MAC address.
+      */
+    _V Address  getAddress() = 0;
 
 };
 

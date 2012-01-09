@@ -32,6 +32,12 @@ class IMACSublayer
       All information currently in progress will be lost.
       */
     _V void     reconnect() = 0;
+
+    /**
+      @returns MAC address.
+      */
+    _V Address  getAddress() = 0;
+
 };
 
 #endif // IMACSUBLAYER_H
