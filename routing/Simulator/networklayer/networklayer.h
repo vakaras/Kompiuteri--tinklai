@@ -10,6 +10,7 @@
 #include <interfaces/INetworkLayer.h>
 #include <networklayer/neighbourinfo.h>
 #include <networklayer/routingprocess.h>
+#include <networklayer/connectionwrapper.h>
 
 #define ROUTES_UPDATE_PERIOD 10000
 
@@ -19,32 +20,60 @@ class NetworkLayer : public QObject, INetworLayer
 
   Q_OBJECT
 
+public:
+
+  _E class FrameType : Byte
+  {
+    Unset,
+    HelloRequest,
+    HelloAnswer
+  };
+
 private:
 
   _T QMap<INetworLayer::Address, NeighbourInfo>     NeighbourMap;
-  _T QList<ILLCSublayerPtr>                         ConnectionList;
+  _T QList<INetworLayer::Address>                   AddressList;
+  _T QList<ConnectionWrapper>                       ConnectionList;
 
-  _M INetworLayer::Address                    m_address;
-  _M ConnectionList                           m_connectionList;
-  _M QMutex                                   m_connectionListMutex;
+  _M INetworLayer::Address  m_address;
+  _M ConnectionList         m_connectionList;
+  _M QMutex                 m_connectionListMutex;
 
-  _M NeighbourMap                             m_neighbourMap;
-  _M QMutex                                   m_neighbourMapMutex;
+  _M NeighbourMap           m_neighbourMap;
+  _M QMutex                 m_neighbourMapMutex;
 
   /**
     Moment, when router should recalculate distances to its neighbours.
     */
-  _M MSec                                     m_calculationExpires;
-  _M QMutex                                   m_calculationExpiresMutex;
+  _M MSec                   m_calculationExpires;
+  _M QMutex                 m_calculationExpiresMutex;
 
-  _F class                                    RoutingProcess;
-  _M RoutingProcess                           m_routingProcess;
-  _M QMutex                                   m_routingProcessMutex;
-  _M QWaitCondition                           m_routingProcessWaitCondition;
+  _F class                  RoutingProcess;
+  _M RoutingProcess         m_routingProcess;
+  _M QMutex                 m_routingProcessMutex;
+  _M QWaitCondition         m_routingProcessWaitCondition;
 
-  _M MSec                                     calculationExpires();
-  _M void                                     setCalculationExpires(
-                                                MSec moment);
+  _M MSec                   calculationExpires();
+  _M void                   setCalculationExpires(
+                              MSec moment);
+
+  _M void                   removeOldNeighbours();
+  _M void                   helloNeighbours();
+
+  _F class                  NetworkReader;
+
+  _M void                   parseFrame(
+                              ILLCSublayerPtr connection,
+                              const IMACSublayer::Address &address,
+                              BytePtr bytes, uint len);
+  _M void                   parseHelloRequest(
+                              ILLCSublayerPtr connection,
+                              const IMACSublayer::Address &address,
+                              BytePtr bytes, uint len);
+  _M void                   parseHelloAnswer(
+                              ILLCSublayerPtr connection,
+                              const IMACSublayer::Address &address,
+                              BytePtr bytes, uint len);
 
 public:
 
@@ -60,5 +89,7 @@ public:
   _M void   restart();
 
 };
+
+typedef std::shared_ptr<NetworkLayer>   NetworkLayerPtr;
 
 #endif // NETWORKLAYER_H

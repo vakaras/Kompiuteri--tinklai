@@ -31,13 +31,21 @@ void RoutingProcess::run()
   QMutexLocker locker(&m_layer->m_routingProcessMutex);
   while (m_go)
   {
-    qDebug() << "RoutingProcess: Sleep";
+    qDebug() << "Routing Started!";
+    m_layer->removeOldNeighbours();
+    m_layer->helloNeighbours();
+    qDebug() << "Waiting answers.";
     m_layer->m_routingProcessWaitCondition.wait(
-          &m_layer->m_routingProcessMutex,
-          (ulong) qMax(QDateTime::currentMSecsSinceEpoch()
-                       - m_layer->calculationExpires(), 0ll));
-    qDebug() << "RoutingProcess: set expires";
+          &m_layer->m_routingProcessMutex, 300);
+    qDebug() << "Looking for answers.";
+    // TODO Send neighbours list.
+
     m_layer->setCalculationExpires(
           QDateTime::currentMSecsSinceEpoch() + ROUTES_UPDATE_PERIOD);
+    qDebug() << "Sleeping.";
+    m_layer->m_routingProcessWaitCondition.wait(
+          &m_layer->m_routingProcessMutex,
+          (ulong) qMax(m_layer->calculationExpires()
+                       - QDateTime::currentMSecsSinceEpoch(), 0ll));
   }
 }

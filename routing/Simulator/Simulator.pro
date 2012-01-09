@@ -26,6 +26,9 @@ SOURCES +=                                                  \
   networklayer/neighbourinfo.cpp                            \
   networklayer/testnetworklayer.cpp                         \
   networklayer/routingprocess.cpp                           \
+  networklayer/helloneighbourpacket.cpp                     \
+  networklayer/networkreader.cpp                            \
+  networklayer/connectionwrapper.cpp                        \
 
 HEADERS +=                                                  \
   types.h                                                   \
@@ -49,4 +52,7 @@ HEADERS +=                                                  \
   networklayer/neighbourinfo.h                              \
   networklayer/testnetworklayer.h                           \
   networklayer/routingprocess.h                             \
+  networklayer/helloneighbourpacket.h                       \
+  networklayer/networkreader.h                              \
+  networklayer/connectionwrapper.h                          \
 
