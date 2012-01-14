@@ -8,11 +8,16 @@
 #include <QWaitCondition>
 #include <interfaces/ILLCSublayer.h>
 #include <interfaces/INetworkLayer.h>
+#include <networklayer/types.h>
 #include <networklayer/neighbourinfo.h>
 #include <networklayer/routingprocess.h>
 #include <networklayer/connectionwrapper.h>
+#include <networklayer/routingtable.h>
 
 #define ROUTES_UPDATE_PERIOD 10000
+
+
+class TestNetworkLayer;
 
 
 class NetworkLayer : public QObject, INetworLayer
@@ -22,13 +27,7 @@ class NetworkLayer : public QObject, INetworLayer
 
 public:
 
-  _E class FrameType : Byte
-  {
-    Unset,
-    HelloRequest,
-    HelloAnswer,
-    NeighbourInfo
-  };
+  _T NetworkLayerFrameType  FrameType;
 
 private:
 
@@ -42,6 +41,8 @@ private:
 
   _M NeighbourMap           m_neighbourMap;
   _M QMutex                 m_neighbourMapMutex;
+  _M void                   addNeighbour(NeighbourInfo neighbour);
+  _M void                   removeNeighbour(INetworLayer::Address address);
 
   /**
     Moment, when router should recalculate distances to its neighbours.
@@ -54,6 +55,7 @@ private:
     */
   _M uint                   m_sequenceNumber;
 
+  _M RoutingTable           m_routingTable;
   _F class                  RoutingProcess;
   _M RoutingProcess         m_routingProcess;
   _M QMutex                 m_routingProcessMutex;
@@ -85,6 +87,11 @@ private:
                               ILLCSublayerPtr connection,
                               const IMACSublayer::Address &address,
                               BytePtr bytes, uint len);
+  _M void                   parseNeighbourListACK(
+                              const IMACSublayer::Address &address,
+                              BytePtr bytes, uint len);
+
+  _F class                  TestNetworkLayer;
 
 public:
 

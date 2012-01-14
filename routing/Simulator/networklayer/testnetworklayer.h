@@ -13,6 +13,7 @@ class TestNetworkLayer : public QObject
 private slots:
 
   _M void       testInit();
+  _M void       testLineTopology();
 
 };
 

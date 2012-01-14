@@ -1,11 +1,12 @@
 #include "networklayer/networklayer.h"
 #include <networklayer/helloneighbourpacket.h>
 #include <networklayer/neighbourinfopacket.h>
+#include <networklayer/neighbourinfoackpacket.h>
 #include <QDateTime>
 
 NetworkLayer::NetworkLayer(INetworLayer::Address address, QObject *parent) :
     QObject(parent), m_address(address), m_calculationExpires(0),
-    m_sequenceNumber(1), m_routingProcess(this)
+    m_sequenceNumber(1), m_routingTable(address), m_routingProcess(this)
 {
   m_routingProcess.start();
 }
@@ -26,6 +27,18 @@ void NetworkLayer::append(ILLCSublayerPtr connection)
   m_calculationExpires = 0;
 }
 
+void NetworkLayer::addNeighbour(NeighbourInfo neighbour)
+{
+  m_neighbourMap[neighbour.m_MACAddress] = neighbour;
+  m_routingTable.add(neighbour);
+}
+
+void NetworkLayer::removeNeighbour(INetworLayer::Address address)
+{
+  m_routingTable.remove(m_neighbourMap[address]);
+  m_neighbourMap.remove(address);
+}
+
 bool NetworkLayer::remove(ILLCSublayerPtr connection)
 {
   QMutexLocker locker1(&m_neighbourMapMutex);
@@ -43,7 +56,7 @@ bool NetworkLayer::remove(ILLCSublayerPtr connection)
   }
   for (auto it : list)
   {
-    m_neighbourMap.remove(it);
+    removeNeighbour(it);
   }
 
   for (int i = 0; i < m_connectionList.size(); i++)
@@ -102,7 +115,7 @@ void NetworkLayer::removeOldNeighbours()
   }
   for (auto it : list)
   {
-    m_neighbourMap.remove(it);
+    removeNeighbour(it);
   }
 }
 
@@ -162,6 +175,8 @@ void NetworkLayer::parseFrame(ILLCSublayerPtr connection,
       parseHelloAnswer(connection, address, bytes, len); break;
     case FrameType::NeighbourInfo:
       parseNeighbourList(connection, address, bytes, len); break;
+    case FrameType::NeighbourInfoACK:
+      parseNeighbourListACK(address, bytes, len); break;
     default: qDebug() << "Unknown frame.";
   };
 }
@@ -192,9 +207,9 @@ void NetworkLayer::parseHelloAnswer(ILLCSublayerPtr connection,
   }
   HelloNeighbourPacket answer = HelloNeighbourPacket::fromBytes(bytes);
   QMutexLocker locker(&m_neighbourMapMutex);
-  m_neighbourMap[answer.m_MACAddress] = NeighbourInfo(
-        address, connection, answer.m_IPAddress,
-        answer.m_answerSent - answer.m_sent);
+  addNeighbour(NeighbourInfo(
+                 address, connection, answer.m_IPAddress,
+                 answer.m_answerSent - answer.m_sent));
 }
 
 void NetworkLayer::parseNeighbourList(ILLCSublayerPtr connection,
@@ -223,4 +238,17 @@ void NetworkLayer::parseNeighbourList(ILLCSublayerPtr connection,
     qDebug() << i << packet.m_neighbours[i].m_address
              << packet.m_neighbours[i].m_distance;
   }
+  m_routingTable.updateRouterInfo(connection, address, packet);
+}
+
+void NetworkLayer::parseNeighbourListACK(
+  const IMACSublayer::Address &address,
+  BytePtr bytes, uint len)
+{
+  if (len != NeighbourInfoACKPacket::length())
+  {
+    return;
+  }
+  NeighbourInfoACKPacket packet = NeighbourInfoACKPacket::fromBytes(bytes);
+  m_routingTable.checkACKPackage(address, packet);
 }

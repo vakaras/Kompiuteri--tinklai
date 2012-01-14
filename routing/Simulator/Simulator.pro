@@ -31,6 +31,10 @@ SOURCES +=                                                  \
   networklayer/networkreader.cpp                            \
   networklayer/connectionwrapper.cpp                        \
   networklayer/neighbourinfopacket.cpp                      \
+  networklayer/routingtable.cpp                             \
+  networklayer/routerinfo.cpp                               \
+  networklayer/neighbourinfoackpacket.cpp                   \
+  networklayer/routingtableprocess.cpp                      \
 
 HEADERS +=                                                  \
   types.h                                                   \
@@ -60,3 +64,8 @@ HEADERS +=                                                  \
   networklayer/networkreader.h                              \
   networklayer/connectionwrapper.h                          \
   networklayer/neighbourinfopacket.h                        \
+  networklayer/routingtable.h                               \
+  networklayer/routerinfo.h                                 \
+  networklayer/neighbourinfoackpacket.h                     \
+  networklayer/routingtableprocess.h                        \
+
