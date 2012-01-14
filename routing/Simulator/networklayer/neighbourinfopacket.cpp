@@ -1,4 +1,5 @@
 #include "neighbourinfopacket.h"
+#include <networklayer/networklayer.h>
 #include <QDateTime>
 
 NeighbourInfoPacket::NeighbourInfo::NeighbourInfo():
@@ -7,7 +8,7 @@ NeighbourInfoPacket::NeighbourInfo::NeighbourInfo():
 }
 
 NeighbourInfoPacket::NeighbourInfo::NeighbourInfo(
-  const ILLCSublayer::Address &address, uint distance):
+  const INetworLayer::Address &address, uint distance):
   m_address(address), m_distance(distance)
 {
 }
@@ -17,6 +18,17 @@ NeighbourInfoPacket::NeighbourInfoPacket():
   m_sequenceNumber(0), m_expires(0), m_length(0)
 {
   m_neighbours = new NeighbourInfo[MAX_NEIGHBOURS];
+}
+
+NeighbourInfoPacket &NeighbourInfoPacket::operator =(
+  const NeighbourInfoPacket &packet)
+{
+  memcpy((void *) this, (void *) &packet, headerLength());
+  delete [] m_neighbours;
+  m_neighbours = new NeighbourInfo[MAX_NEIGHBOURS];
+  memcpy((void *) m_neighbours, (void *) packet.m_neighbours,
+         MAX_NEIGHBOURS*sizeof(NeighbourInfo));
+  return *this;
 }
 
 NeighbourInfoPacket::NeighbourInfoPacket(const NeighbourInfoPacket &packet)
@@ -78,7 +90,7 @@ uint NeighbourInfoPacket::toBytes(BytePtr &bytes)
 }
 
 void NeighbourInfoPacket::append(
-  const ILLCSublayer::Address &address, uint distance)
+  const INetworLayer::Address &address, uint distance)
 {
   if (m_length + 1 < MAX_NEIGHBOURS)
   {

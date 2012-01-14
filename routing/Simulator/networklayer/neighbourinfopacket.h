@@ -1,10 +1,8 @@
 #ifndef NEIGHBOURINFOPACKET_H
 #define NEIGHBOURINFOPACKET_H
 
-#include <types.h>
-#include <networklayer/networklayer.h>
-#include <interfaces/ILLCSublayer.h>
-#include <tuple>
+#include <interfaces/INetworkLayer.h>
+#include <networklayer/types.h>
 
 #define MAX_NEIGHBOURS 20
 
@@ -14,18 +12,18 @@ struct NeighbourInfoPacket
 
   struct NeighbourInfo
   {
-    _M ILLCSublayer::Address      m_address;
+    _M INetworLayer::Address      m_address;
     _M uint                       m_distance;
 
     _M Vacuum                     NeighbourInfo();
     _M Vacuum                     NeighbourInfo(
-                                    const ILLCSublayer::Address &address,
+                                    const INetworLayer::Address &address,
                                     uint distance);
   } __attribute__((packed));
 
-  _T NeighbourInfo*                           NeighbourInfoPtr;
+  _T NeighbourInfo*               NeighbourInfoPtr;
 
-  _M NetworkLayer::FrameType      m_type;
+  _M NetworkLayerFrameType        m_type;
   _M INetworLayer::Address        m_senderAddress;
   _M uint                         m_sequenceNumber;
   _M MSec                         m_expires;
@@ -39,9 +37,10 @@ struct NeighbourInfoPacket
                                 const INetworLayer::Address &senderAddress,
                                 uint sequenceNumber);
   _M Vacuum                   ~NeighbourInfoPacket();
+  _M NeighbourInfoPacket&     operator=(const NeighbourInfoPacket &packet);
   _S NeighbourInfoPacket      fromBytes(BytePtr bytes);
   _M uint                     toBytes(BytePtr &bytes);
-  _M void                     append(const ILLCSublayer::Address &address,
+  _M void                     append(const INetworLayer::Address &address,
                                      uint distance);
   _S uint                     headerLength();
   _M uint                     length();

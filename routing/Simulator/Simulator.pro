@@ -51,6 +51,7 @@ HEADERS +=                                                  \
   macsublayer/macreader.h                                   \
   macsublayer/testmacsublayer.h                             \
   llcsublayer/llcsublayer.h                                 \
+  networklayer/types.h                                      \
   networklayer/networklayer.h                               \
   networklayer/neighbourinfo.h                              \
   networklayer/testnetworklayer.h                           \
