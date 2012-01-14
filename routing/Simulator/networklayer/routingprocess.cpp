@@ -31,9 +31,11 @@ void RoutingProcess::run()
   QMutexLocker locker(&m_layer->m_routingProcessMutex);
   m_layer->m_routingProcessWaitCondition.wait(
         &m_layer->m_routingProcessMutex, 500);
+  m_goMutex.lock();
   while (m_go)
   {
-    qDebug() << "Routing Started!";
+    m_goMutex.unlock();
+    qDebug() << "Routing Started!" << m_layer;
     m_layer->removeOldNeighbours();
     m_layer->helloNeighbours();
     qDebug() << "Waiting answers." << m_layer;
@@ -48,5 +50,7 @@ void RoutingProcess::run()
           &m_layer->m_routingProcessMutex,
           (ulong) qMax(m_layer->calculationExpires()
                        - QDateTime::currentMSecsSinceEpoch(), 0ll));
+    m_goMutex.lock();
   }
+  m_goMutex.unlock();
 }
