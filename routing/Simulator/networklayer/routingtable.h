@@ -79,6 +79,8 @@ public:
   /** Removes old entries and runs Dijkstra. */
   _M void     update();
 
+  _M void     removeOld();
+
   /** Forwards packages with neighbours info.
     @returns thread sleep time in miliseconds.
    */
