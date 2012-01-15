@@ -40,4 +40,6 @@ class IMACSublayer
 
 };
 
+typedef std::shared_ptr<IMACSublayer>   IMACSublayerPtr;
+
 #endif // IMACSUBLAYER_H
