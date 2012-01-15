@@ -1,6 +1,7 @@
 #ifndef NETWORKLAYER_H
 #define NETWORKLAYER_H
 
+#include <tuple>
 #include <QObject>
 #include <QMap>
 #include <QList>
@@ -15,6 +16,7 @@
 #include <networklayer/routingtable.h>
 
 #define ROUTES_UPDATE_PERIOD 10000
+#define MAX_READ_BUFFER_SIZE 20
 
 
 class TestNetworkLayer;
@@ -31,9 +33,11 @@ public:
 
 private:
 
-  _T QMap<INetworLayer::Address, NeighbourInfo>     NeighbourMap;
-  _T QList<INetworLayer::Address>                   AddressList;
-  _T QList<ConnectionWrapper>                       ConnectionList;
+  _T QMap<Address, NeighbourInfo>         NeighbourMap;
+  _T QList<Address>                       AddressList;
+  _T QList<ConnectionWrapper>             ConnectionList;
+  _T std::tuple<Address, BytePtr, uint>   DataFrame;
+  _T QList<DataFrame>                     DataFrameList;
 
   _M INetworLayer::Address  m_address;
   _M ConnectionList         m_connectionList;
@@ -90,6 +94,15 @@ private:
   _M void                   parseNeighbourListACK(
                               const IMACSublayer::Address &address,
                               BytePtr bytes, uint len);
+  _M void                   parseIP(BytePtr bytes, uint len);
+
+  /**
+    For sending and receiving data packages.
+    */
+  _M QMutex                 m_sendMutex;
+  _M DataFrameList          m_readBuffer;
+  _M QMutex                 m_readBufferMutex;
+  _M QWaitCondition         m_readBufferWaitCondition;
 
   _F class                  TestNetworkLayer;
 

@@ -2,6 +2,7 @@
 #include <networklayer/helloneighbourpacket.h>
 #include <networklayer/neighbourinfopacket.h>
 #include <networklayer/neighbourinfoackpacket.h>
+#include <networklayer/ippacket.h>
 #include <QDateTime>
 
 NetworkLayer::NetworkLayer(INetworLayer::Address address, QObject *parent) :
@@ -86,19 +87,41 @@ void NetworkLayer::setCalculationExpires(MSec moment)
 
 bool NetworkLayer::send(Address address, Byte *bytes, uint len)
 {
-  // TODO
-  return false;
+  QMutexLocker locker(&m_sendMutex);
+  IPPacket packet(m_address, address, bytes, len);
+  return m_routingTable.forward(packet);
 }
 
 uint NetworkLayer::receive(Address &address, BytePtr &bytes, ulong time)
 {
-  // TODO
-  return 0;
+  QMutexLocker locker(&m_readBufferMutex);
+  while (m_readBuffer.isEmpty())
+  {
+    if (!m_readBufferWaitCondition.wait(&m_readBufferMutex, time))
+    {
+      return 0;
+    }
+  }
+  uint len;
+  std::tie(address, bytes, len) = m_readBuffer.first();
+  return len;
 }
 
 void NetworkLayer::restart()
 {
   // TODO
+//QMutexLocker locker4(&m_sendMutex);
+//m_routingProcess.stop();
+//setCalculationExpires(0);
+//QMutexLocker locker1(&m_connectionListMutex);
+//QMutexLocker locker2(&m_neighbourMapMutex);
+//QMutexLocker locker3(&m_readBufferMutex);
+//m_neighbourMap.clear();
+//m_sequenceNumber = 0;
+//m_readBuffer.clear();
+//m_routingTable = RoutingTable(m_address);
+
+//m_routingProcess.start();
 }
 
 void NetworkLayer::removeOldNeighbours()
@@ -116,6 +139,10 @@ void NetworkLayer::removeOldNeighbours()
   for (auto it : list)
   {
     removeNeighbour(it);
+  }
+  if (!list.isEmpty())
+  {
+    m_routingTable.update();
   }
 }
 
@@ -141,8 +168,6 @@ void NetworkLayer::sendNeighboursList()
 
   for (auto neighbourInfo : m_neighbourMap)
   {
-    qDebug() << "NeighbourInfo:" << neighbourInfo.m_IPAddress
-             << neighbourInfo.m_distance;
     packet.append(neighbourInfo.m_IPAddress, neighbourInfo.m_distance);
   }
   BytePtr bytes;
@@ -177,6 +202,8 @@ void NetworkLayer::parseFrame(ILLCSublayerPtr connection,
       parseNeighbourList(connection, address, bytes, len); break;
     case FrameType::NeighbourInfoACK:
       parseNeighbourListACK(address, bytes, len); break;
+    case FrameType::IP:
+      parseIP(bytes, len); break;
     default: qDebug() << "Unknown frame.";
   };
 }
@@ -185,7 +212,6 @@ void NetworkLayer::parseHelloRequest(ILLCSublayerPtr connection,
                                      const IMACSublayer::Address &address,
                                      BytePtr bytes, uint len)
 {
-  qDebug() << "HelloRequest:" << this << address;
   if (len < HelloNeighbourPacket::len())
   {
     return;
@@ -200,7 +226,6 @@ void NetworkLayer::parseHelloAnswer(ILLCSublayerPtr connection,
                                     const IMACSublayer::Address &address,
                                     BytePtr bytes, uint len)
 {
-  qDebug() << "HelloAnswer:" << this << address;
   if (len < HelloNeighbourPacket::len())
   {
     return;
@@ -216,7 +241,6 @@ void NetworkLayer::parseNeighbourList(ILLCSublayerPtr connection,
                                       const IMACSublayer::Address &address,
                                       BytePtr bytes, uint len)
 {
-  qDebug() << "Neighbours:" << this << address;
   if (len < NeighbourInfoPacket::headerLength())
   {
     return;
@@ -229,15 +253,15 @@ void NetworkLayer::parseNeighbourList(ILLCSublayerPtr connection,
 //{
 //  qDebug("%02x", bytes.get()[i]);
 //}
-  qDebug() << "Packet info:" << m_address;
-  qDebug() << "Sender:" << packet.m_senderAddress;
-  qDebug() << "Sequence:" << packet.m_sequenceNumber;
-  qDebug() << "Length:" << packet.m_length;
-  for (uint i = 0; i < packet.m_length; i++)
-  {
-    qDebug() << i << packet.m_neighbours[i].m_address
-             << packet.m_neighbours[i].m_distance;
-  }
+//qDebug() << "Packet info:" << m_address;
+//qDebug() << "Sender:" << packet.m_senderAddress;
+//qDebug() << "Sequence:" << packet.m_sequenceNumber;
+//qDebug() << "Length:" << packet.m_length;
+//for (uint i = 0; i < packet.m_length; i++)
+//{
+//  qDebug() << i << packet.m_neighbours[i].m_address
+//           << packet.m_neighbours[i].m_distance;
+//}
   m_routingTable.updateRouterInfo(connection, address, packet);
 }
 
@@ -251,4 +275,34 @@ void NetworkLayer::parseNeighbourListACK(
   }
   NeighbourInfoACKPacket packet = NeighbourInfoACKPacket::fromBytes(bytes);
   m_routingTable.checkACKPackage(address, packet);
+}
+
+void NetworkLayer::parseIP(BytePtr bytes, uint len)
+{
+  if (len < IPPacket::headerLength())
+  {
+    return;
+  }
+  IPPacket packet = IPPacket::fromBytes(bytes);
+  qDebug() << "IP Packet:" << packet.m_source << packet.m_destination
+           << m_address;
+  if (packet.m_destination == m_address)
+  {
+    QMutexLocker locker(&m_readBufferMutex);
+    if (m_readBuffer.size() < MAX_READ_BUFFER_SIZE)
+    {
+      BytePtr bytes = BytePtr(
+            new Byte[packet.m_dataLength], sharedArrayDeleter<Byte>);
+      memcpy((void *) bytes.get(), (void *) packet.m_data,
+             packet.m_dataLength);
+      Address address = packet.m_source;
+      uint len = packet.m_dataLength;
+      m_readBuffer.append(DataFrame(address, bytes, len));
+      m_readBufferWaitCondition.wakeOne();
+    }
+  }
+  else
+  {
+    m_routingTable.forward(packet);
+  }
 }

@@ -9,7 +9,8 @@ enum class NetworkLayerFrameType : Byte
   HelloRequest,
   HelloAnswer,
   NeighbourInfo,
-  NeighbourInfoACK
+  NeighbourInfoACK,
+  IP
 };
 
 #endif // NETWORKLAYER_TYPES_H

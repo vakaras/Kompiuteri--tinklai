@@ -10,6 +10,7 @@
 #include <networklayer/neighbourinfo.h>
 #include <networklayer/routerinfo.h>
 #include <networklayer/routingtableprocess.h>
+#include <networklayer/ippacket.h>
 
 
 class NeighbourInfoPacket;
@@ -51,12 +52,10 @@ public:
   _M Vacuum   ~RoutingTable();
 
   /**
-    Get information needed for packet forwarding.
-    @param ipAddress – about which router we are looking info.
-    @returns false if entry doesn't exist.
+    Forward data package. Returns true if successful.
   */
-  _M bool     getForwardInfo(INetworLayer::Address ipAddress,
-                             NeighbourInfo *info);
+  _M bool     forward(IPPacket packet);
+
   /**
     Creates entry for neighbour if it doesn't exist.
     @returns false if already existed.

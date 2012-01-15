@@ -16,6 +16,34 @@ RoutingTable::~RoutingTable()
   m_process.stop();
 }
 
+bool RoutingTable::forward(IPPacket packet)
+{
+  if (packet.m_hops == 0)
+  {
+    qDebug() << "Discarding: hops";
+    return false;
+  }
+  packet.m_hops--;
+  QMutexLocker locker(&m_mutex);
+  if (!m_routerInfoMap.contains(packet.m_destination))
+  {
+    qDebug() << "Discarding: no info about destination";
+    return false;
+  }
+  RouterInfo &routerInfo = m_routerInfoMap[packet.m_destination];
+  if (!m_neighbourMap.contains(routerInfo.m_through))
+  {
+    qDebug() << "Discarding: no neighbour";
+    return false;
+  }
+  NeighbourInfo &neighbour = m_neighbourMap[routerInfo.m_through];
+  BytePtr bytes;
+  uint len = packet.toBytes(bytes);
+  packet.m_hops++;
+  return neighbour.m_connection->send(
+        neighbour.m_MACAddress, bytes.get(), len);
+}
+
 bool RoutingTable::add(NeighbourInfo &info)
 {
   QMutexLocker locker(&m_mutex);
@@ -51,13 +79,11 @@ bool RoutingTable::checkNeighbourInfoPacket(
 {
   if (m_routerInfoMap.contains(packet.m_senderAddress))
   {
-    qDebug() << "Get:" << packet.m_senderAddress;
     RouterInfo &info = m_routerInfoMap[packet.m_senderAddress];
     return info.m_sequenceNumber <= packet.m_sequenceNumber;
   }
   else
   {
-    qDebug() << "Create:" << packet.m_senderAddress;
     m_routerInfoMap[packet.m_senderAddress] = RouterInfo(
           packet.m_senderAddress);
     return true;
@@ -69,17 +95,10 @@ void RoutingTable::updateRouterInfo(ILLCSublayerPtr connection,
                                     const NeighbourInfoPacket &packet)
 {
   QMutexLocker locker(&m_mutex);
-  qDebug() << "PRE:"
-           << packet.m_senderAddress
-           << m_routerInfoMap.contains(packet.m_senderAddress);
   if (!checkNeighbourInfoPacket(packet))
     return;
   bool duplicate = false;
   RouterInfo &info = m_routerInfoMap[packet.m_senderAddress];
-  qDebug() << "IP:" << info.m_ipAddress << info.m_sequenceNumber;
-  qDebug() << ":"
-           << packet.m_senderAddress
-           << m_routerInfoMap.contains(packet.m_senderAddress);
   if (info.m_sequenceNumber < packet.m_sequenceNumber)
   {
     info.m_sequenceNumber = packet.m_sequenceNumber;
@@ -102,9 +121,6 @@ void RoutingTable::updateRouterInfo(ILLCSublayerPtr connection,
   info.m_knowsInfoSet << senderAddress;
   NeighbourInfoACKPacket ackPacket = NeighbourInfoACKPacket(
         m_address, packet);
-
-  qDebug() << "IP:" << info.m_ipAddress << info.m_sequenceNumber
-           << duplicate;
 
   BytePtr bytes;
   uint len = ackPacket.toBytes(bytes);
@@ -135,10 +151,11 @@ void RoutingTable::update()
   QMultiMap<uint, INetworLayer::Address> distances;
   QSet<INetworLayer::Address> analysed;
 
-  for (auto routerInfo : m_routerInfoMap)
+  for (auto routerInfo = m_routerInfoMap.begin();
+       routerInfo != m_routerInfoMap.end(); routerInfo++)
   {
-    routerInfo.m_distance = UINT_MAX;
-    routerInfo.m_through = 0;
+    routerInfo->m_distance = UINT_MAX;
+    routerInfo->m_through = 0;
   }
   for (auto neighbour : m_neighbourMap)
   {

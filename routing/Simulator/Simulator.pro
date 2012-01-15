@@ -35,6 +35,7 @@ SOURCES +=                                                  \
   networklayer/routerinfo.cpp                               \
   networklayer/neighbourinfoackpacket.cpp                   \
   networklayer/routingtableprocess.cpp                      \
+  networklayer/ippacket.cpp                                 \
 
 HEADERS +=                                                  \
   types.h                                                   \
@@ -68,4 +69,5 @@ HEADERS +=                                                  \
   networklayer/routerinfo.h                                 \
   networklayer/neighbourinfoackpacket.h                     \
   networklayer/routingtableprocess.h                        \
+  networklayer/ippacket.h                                   \
 
