@@ -3,6 +3,7 @@
 
 #include <QtTest/QTest>
 #include <networklayer/networklayer.h>
+#include <router/router.h>
 
 
 class TestNetworkLayer : public QObject
@@ -14,6 +15,7 @@ private slots:
 
   _M void       testInit();
   _M void       testLineTopology();
+  _M void       testDifficultTopology();
 
 };
 

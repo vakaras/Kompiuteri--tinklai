@@ -2,6 +2,8 @@
 #include <cable/cable.h>
 #include <macsublayer/macsublayer.h>
 #include <llcsublayer/llcsublayer.h>
+#include <QDateTime>
+
 
 void TestNetworkLayer::testInit()
 {
@@ -216,4 +218,146 @@ void TestNetworkLayer::testLineTopology()
   QCOMPARE(rC_A.m_through, ntlayerB.m_address);
   QVERIFY(rC_A.m_distance > ntlayerC.m_neighbourMap[macB2.getAddress()].m_distance);
 
+  qDebug() << "W4";
+  Byte data[] = {4, 5, 6, 7, 8, 9};
+  QCOMPARE(ntlayerA.send(ntlayerA.m_address, data, 6), false);
+  QCOMPARE(ntlayerA.send(4, data, 6), false);
+  QCOMPARE(ntlayerA.send(ntlayerC.m_address, data, 6), true);
+  INetworLayer::Address address;
+  BytePtr bytes;
+  QCOMPARE(ntlayerC.receive(address, bytes), 6u);
+  QCOMPARE(address, ntlayerA.m_address);
+  Byte *pointer = bytes.get();
+  for (auto byte : data)
+  {
+    QCOMPARE(*(pointer++), byte);
+  }
+
+}
+
+void TestNetworkLayer::testDifficultTopology()
+{
+  /* Model:
+   *
+   *    1
+   *    |          H0
+   *    |          |
+   *    |          0
+   *    |          |
+   *    |----------H1-----2-----H2
+   *    |          |            |
+   *    |          |            |
+   *    |          3            4
+   *    |          |            |
+   *    |          |            |
+   *    |          H3-----5-----H4
+   *    |
+   *    |
+   *    |-------------------H5-----6-------H6    
+   *    |                   | \           /|    
+   *    |                   |  7         / |    
+   *    |                   |   \       8  |    
+   *    |                   |    \     /   |    
+   *    |                   |     \   /    |    
+   *    |                   |      \ /     |    
+   *    |                   9       \      10   
+   *    |                   |      / \     |    
+   *    |                   |     /   \    |    
+   *    |                   |    /     \   |    
+   *    |                   |   /       \  |    
+   *    |                   |  /         \ |    
+   *    |                   | /           \|    
+   *    |-------------------H7-----11------H8    
+   */
+
+  Cable cables[12];
+  Router *routers[9];
+  for (int i = 0; i < 9; i++)
+  {
+    routers[i] = new Router(100 + i);
+  }
+
+  routers[0]->connect(cables[0], 1);
+
+  routers[1]->connect(cables[0], 2);
+  routers[1]->connect(cables[1], 3);
+  routers[1]->connect(cables[2], 4);
+  routers[1]->connect(cables[3], 5);
+
+  routers[2]->connect(cables[2], 6);
+  routers[2]->connect(cables[4], 7);
+
+  routers[3]->connect(cables[3], 8);
+  routers[3]->connect(cables[5], 9);
+
+  routers[4]->connect(cables[4], 10);
+  routers[4]->connect(cables[5], 11);
+
+  QTest::qWait(8000);
+
+  Byte data[] = {4, 5, 6, 7, 8, 9};
+  INetworLayer::Address address;
+  BytePtr bytes;
+  Byte *pointer;
+
+  QCOMPARE(routers[4]->m_networkLayer.m_neighbourMap.size(), 2);
+  QCOMPARE(routers[4]->m_networkLayer.m_routingTable.m_neighbourMap.size(), 2);
+  QCOMPARE(routers[4]->m_networkLayer.m_routingTable.m_routerInfoMap.size(), 4);
+  QCOMPARE(routers[4]->send(routers[0]->address(), data, 6), true);
+  QCOMPARE(routers[0]->receive(address, bytes), 6u);
+  QCOMPARE(address, routers[4]->m_address);
+  pointer = bytes.get();
+  for (auto byte : data)
+  {
+    QCOMPARE(*(pointer++), byte);
+  }
+
+  routers[5]->connect(cables[1], 12);
+  routers[5]->connect(cables[6], 13);
+  routers[5]->connect(cables[7], 14);
+  routers[5]->connect(cables[9], 15);
+
+  routers[6]->connect(cables[6],  16);
+  routers[6]->connect(cables[8],  17);
+  routers[6]->connect(cables[10], 18);
+
+  routers[7]->connect(cables[1],  18);
+  routers[7]->connect(cables[8],  19);
+  routers[7]->connect(cables[9],  20);
+  routers[7]->connect(cables[11], 21);
+
+  routers[8]->connect(cables[7],  22);
+  routers[8]->connect(cables[10], 23);
+  routers[8]->connect(cables[11], 24);
+
+  qDebug() << "W4";
+  QTest::qWait(20000);
+  qDebug() << "W5";
+
+  QCOMPARE(routers[4]->m_networkLayer.m_routingTable.m_routerInfoMap.size(), 8);
+  QCOMPARE(routers[4]->send(routers[8]->address(), data, 6), true);
+  qDebug() << "W5.1";
+  QCOMPARE(routers[8]->receive(address, bytes), 6u);
+  qDebug() << "W5.2";
+  QCOMPARE(address, routers[4]->m_address);
+  pointer = bytes.get();
+
+  qDebug() << "W6";
+  delete routers[7];
+  routers[7] = new Router(100 + 7);
+  routers[5]->disconnect(3);
+  QTest::qWait(30000);
+  qDebug() << "W7";
+  QCOMPARE(routers[5]->m_networkLayer.m_neighbourMap.size(), 2);
+  QCOMPARE(routers[4]->m_networkLayer.m_routingTable.m_routerInfoMap.size(), 7);
+  QCOMPARE(routers[4]->send(routers[8]->address(), data, 6), true);
+  qDebug() << "W7.1";
+  QCOMPARE(routers[8]->receive(address, bytes), 6u);
+  qDebug() << "W7.2";
+  QCOMPARE(address, routers[4]->m_address);
+  pointer = bytes.get();
+  qDebug() << "W8";
+
+  for (auto router : routers)
+    delete router;
 }

@@ -4,7 +4,7 @@
 #include <interfaces/INetworkLayer.h>
 #include <interfaces/ILLCSublayer.h>
 
-#define NEIGHBOUR_INFO_LIFETIME 60000
+#define NEIGHBOUR_INFO_LIFETIME 20000
 
 
 struct NeighbourInfo

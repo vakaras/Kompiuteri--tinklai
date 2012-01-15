@@ -35,17 +35,17 @@ void RoutingProcess::run()
   while (m_go)
   {
     m_goMutex.unlock();
-    qDebug() << "Routing Started!" << m_layer;
+    //qDebug() << "Routing Started!" << m_layer;
     m_layer->removeOldNeighbours();
     m_layer->helloNeighbours();
-    qDebug() << "Waiting answers." << m_layer;
+    //qDebug() << "Waiting answers." << m_layer;
     m_layer->m_routingProcessWaitCondition.wait(
           &m_layer->m_routingProcessMutex, 3000);
-    qDebug() << "Looking for answers." << m_layer;
+    //qDebug() << "Looking for answers." << m_layer;
     m_layer->sendNeighboursList();
     m_layer->setCalculationExpires(
           QDateTime::currentMSecsSinceEpoch() + ROUTES_UPDATE_PERIOD);
-    qDebug() << "Sleeping." << m_layer;
+    //qDebug() << "Sleeping." << m_layer;
     m_layer->m_routingProcessWaitCondition.wait(
           &m_layer->m_routingProcessMutex,
           (ulong) qMax(m_layer->calculationExpires()

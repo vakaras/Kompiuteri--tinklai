@@ -43,7 +43,7 @@ NeighbourInfoPacket::NeighbourInfoPacket(
   const INetworLayer::Address &senderAddress, uint sequenceNumber):
   m_type(NetworkLayer::FrameType::NeighbourInfo),
   m_senderAddress(senderAddress), m_sequenceNumber(sequenceNumber),
-  m_expires(QDateTime::currentMSecsSinceEpoch() + ROUTES_UPDATE_PERIOD * 6),
+  m_expires(QDateTime::currentMSecsSinceEpoch() + ROUTES_UPDATE_PERIOD * 2),
   m_length(0)
 {
   m_neighbours = new NeighbourInfo[MAX_NEIGHBOURS];
@@ -67,8 +67,6 @@ NeighbourInfoPacket NeighbourInfoPacket::fromBytes(BytePtr bytes)
   for (uint i = 0; i < packet.m_length; i++)
   {
     packet.m_neighbours[i] = info[i];
-    qDebug() << i << packet.m_neighbours[i].m_address
-             << packet.m_neighbours[i].m_distance;
   }
   return packet;
 }
