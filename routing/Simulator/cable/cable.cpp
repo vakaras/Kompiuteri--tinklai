@@ -10,7 +10,8 @@ Cable::Cable(double errorRate, ulong sleepTime, QObject *parent) :
 Cable::~Cable()
 {
   m_process.stop();
-  QMutexLocker locker(&m_connectionPointsMutex);
+  lockAll();
+  deleteUnused();
   Q_ASSERT(m_connectionPoints.isEmpty());
                                         // Cabel must be deleted after
                                         // all clients.
@@ -37,11 +38,12 @@ void Cable::unlockAll()
 void Cable::deleteUnused()
 {
   ConnectionPointList toDelete;
-  for (auto connectionPoint : m_connectionPoints)
+  for (auto connectionPoint = m_connectionPoints.begin();
+       connectionPoint != m_connectionPoints.end(); connectionPoint++)
   {
-    if (connectionPoint.unique())
+    if (connectionPoint->unique())
     {
-      toDelete.append(connectionPoint);
+      toDelete.append(*connectionPoint);
     }
   }
   for (auto connectionPoint : toDelete)
