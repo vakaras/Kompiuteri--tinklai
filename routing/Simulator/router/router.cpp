@@ -1,6 +1,6 @@
 #include "router.h"
 
-Router::Router(INetworLayer::Address address, QObject *parent) :
+Router::Router(INetworkLayer::Address address, QObject *parent) :
   QObject(parent), m_address(address), m_networkLayer(address),
   m_lastConnectionId(0)
 {
@@ -35,7 +35,7 @@ bool Router::disconnect(uint connectionId)
   }
 }
 
-INetworLayer::Address Router::address()
+INetworkLayer::Address Router::address()
 {
   return m_address;
 }

@@ -6,7 +6,7 @@ NeighbourInfoACKPacket::NeighbourInfoACKPacket():
 }
 
 NeighbourInfoACKPacket::NeighbourInfoACKPacket(
-  INetworLayer::Address senderAddress, const NeighbourInfoPacket &packet):
+  INetworkLayer::Address senderAddress, const NeighbourInfoPacket &packet):
   m_type(NetworkLayer::FrameType::NeighbourInfoACK),
   m_dataAuthorAddress(packet.m_senderAddress),
   m_senderAddress(senderAddress), m_sequenceNumber(packet.m_sequenceNumber)

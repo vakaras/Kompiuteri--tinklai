@@ -5,7 +5,7 @@ RouterInfo::RouterInfo():
 {
 }
 
-RouterInfo::RouterInfo(INetworLayer::Address ipAddress) :
+RouterInfo::RouterInfo(INetworkLayer::Address ipAddress) :
   m_ipAddress(ipAddress), m_sequenceNumber(0), m_expires(0),
   m_distance(UINT_MAX)
 {

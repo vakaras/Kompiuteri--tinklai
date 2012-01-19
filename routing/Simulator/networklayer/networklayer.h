@@ -22,7 +22,7 @@
 class TestNetworkLayer;
 
 
-class NetworkLayer : public QObject, INetworLayer
+class NetworkLayer : public QObject, public INetworkLayer
 {
 
   Q_OBJECT
@@ -39,14 +39,14 @@ private:
   _T std::tuple<Address, BytePtr, uint>   DataFrame;
   _T QList<DataFrame>                     DataFrameList;
 
-  _M INetworLayer::Address  m_address;
+  _M INetworkLayer::Address m_address;
   _M ConnectionList         m_connectionList;
   _M QMutex                 m_connectionListMutex;
 
   _M NeighbourMap           m_neighbourMap;
   _M QMutex                 m_neighbourMapMutex;
   _M void                   addNeighbour(NeighbourInfo neighbour);
-  _M void                   removeNeighbour(INetworLayer::Address address);
+  _M void                   removeNeighbour(INetworkLayer::Address address);
 
   /**
     Moment, when router should recalculate distances to its neighbours.
@@ -108,7 +108,7 @@ private:
 
 public:
 
-  explicit NetworkLayer(INetworLayer::Address address, QObject *parent = 0);
+  explicit NetworkLayer(INetworkLayer::Address address, QObject *parent = 0);
   _M Vacuum ~NetworkLayer();
 
   _M void   append(ILLCSublayerPtr connection);

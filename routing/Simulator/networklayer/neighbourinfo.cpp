@@ -8,7 +8,7 @@ NeighbourInfo::NeighbourInfo():
 
 NeighbourInfo::NeighbourInfo(IMACSublayer::Address MACAddress,
                              ILLCSublayerPtr layer,
-                             INetworLayer::Address IPAdress, uint distance):
+                             INetworkLayer::Address IPAdress, uint distance):
   m_MACAddress(MACAddress), m_connection(layer), m_IPAddress(IPAdress),
   m_distance(distance),
   m_expires(QDateTime::currentMSecsSinceEpoch() + NEIGHBOUR_INFO_LIFETIME)

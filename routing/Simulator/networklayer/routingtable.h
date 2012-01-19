@@ -25,11 +25,11 @@ class RoutingTable : public QObject
 
 private:
 
-  _T std::tuple<uint, INetworLayer::Address>        AddressDistance;
-  _T QMap<INetworLayer::Address, NeighbourInfo>     NeighbourMap;
-  _T QMap<INetworLayer::Address, RouterInfo>        RouterInfoMap;
+  _T std::tuple<uint, INetworkLayer::Address>        AddressDistance;
+  _T QMap<INetworkLayer::Address, NeighbourInfo>     NeighbourMap;
+  _T QMap<INetworkLayer::Address, RouterInfo>        RouterInfoMap;
 
-  _M INetworLayer::Address  m_address;
+  _M INetworkLayer::Address m_address;
   _M QMutex                 m_mutex;
 
   _M NeighbourMap           m_neighbourMap;
@@ -48,7 +48,7 @@ private:
 
 public:
 
-  explicit RoutingTable(INetworLayer::Address address, QObject *parent = 0);
+  explicit RoutingTable(INetworkLayer::Address address, QObject *parent = 0);
   _M Vacuum   ~RoutingTable();
 
   /**

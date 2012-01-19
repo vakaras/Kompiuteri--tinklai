@@ -3,7 +3,7 @@
 #include <networklayer/neighbourinfoackpacket.h>
 #include <QDateTime>
 
-RoutingTable::RoutingTable(INetworLayer::Address address, QObject *parent) :
+RoutingTable::RoutingTable(INetworkLayer::Address address, QObject *parent) :
     QObject(parent), m_address(address), m_process(this)
 {
   QMutexLocker locker(&m_mutex);
@@ -148,8 +148,8 @@ void RoutingTable::checkACKPackage(ILLCSublayer::Address senderAddress,
 void RoutingTable::update()
 {
   removeOld();
-  QMultiMap<uint, INetworLayer::Address> distances;
-  QSet<INetworLayer::Address> analysed;
+  QMultiMap<uint, INetworkLayer::Address> distances;
+  QSet<INetworkLayer::Address> analysed;
 
   for (auto routerInfo = m_routerInfoMap.begin();
        routerInfo != m_routerInfoMap.end(); routerInfo++)
@@ -173,7 +173,7 @@ void RoutingTable::update()
   {
     auto it = distances.lowerBound(0);
     uint distance = it.key();
-    INetworLayer::Address address = it.value();
+    INetworkLayer::Address address = it.value();
     RouterInfo &routerInfo = m_routerInfoMap[address];
     if (!analysed.contains(address))
     {
@@ -212,7 +212,7 @@ void RoutingTable::update()
 void RoutingTable::removeOld()
 {
   MSec now = QDateTime::currentMSecsSinceEpoch();
-  QList<INetworLayer::Address> removeList;
+  QList<INetworkLayer::Address> removeList;
   for (auto it = m_routerInfoMap.begin(); it != m_routerInfoMap.end(); it++)
   {
     if (it.value().m_expires <= now)

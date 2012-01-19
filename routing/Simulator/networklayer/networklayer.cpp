@@ -5,7 +5,7 @@
 #include <networklayer/ippacket.h>
 #include <QDateTime>
 
-NetworkLayer::NetworkLayer(INetworLayer::Address address, QObject *parent) :
+NetworkLayer::NetworkLayer(INetworkLayer::Address address, QObject *parent) :
     QObject(parent), m_address(address), m_calculationExpires(0),
     m_sequenceNumber(1), m_routingTable(address), m_routingProcess(this)
 {
@@ -34,7 +34,7 @@ void NetworkLayer::addNeighbour(NeighbourInfo neighbour)
   m_routingTable.add(neighbour);
 }
 
-void NetworkLayer::removeNeighbour(INetworLayer::Address address)
+void NetworkLayer::removeNeighbour(INetworkLayer::Address address)
 {
   m_routingTable.remove(m_neighbourMap[address]);
   m_neighbourMap.remove(address);

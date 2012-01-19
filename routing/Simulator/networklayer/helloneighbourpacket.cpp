@@ -9,14 +9,14 @@ HelloNeighbourPacket::HelloNeighbourPacket():
 
 HelloNeighbourPacket::HelloNeighbourPacket(
   NetworkLayer::FrameType type, IMACSublayer::Address MACAddress,
-  INetworLayer::Address IPAddress):
+  INetworkLayer::Address IPAddress):
   m_type(type), m_MACAddress(MACAddress), m_IPAddress(IPAddress),
   m_sent(0), m_answerSent(0)
 {
 }
 
 HelloNeighbourPacket HelloNeighbourPacket::createRequest(
-  IMACSublayer::Address MACAddress, INetworLayer::Address IPAddress)
+  IMACSublayer::Address MACAddress, INetworkLayer::Address IPAddress)
 {
   HelloNeighbourPacket request(NetworkLayer::FrameType::HelloRequest,
                                MACAddress, IPAddress);
@@ -27,7 +27,7 @@ HelloNeighbourPacket HelloNeighbourPacket::createRequest(
 HelloNeighbourPacket HelloNeighbourPacket::createAnswer(
   const HelloNeighbourPacket &request,
   IMACSublayer::Address MACAddress,
-  INetworLayer::Address IPAddress)
+  INetworkLayer::Address IPAddress)
 {
   HelloNeighbourPacket answer = request;
   answer.m_type = NetworkLayer::FrameType::HelloAnswer;

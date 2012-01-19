@@ -12,9 +12,9 @@ struct RouterInfo
 {
 
   _T QSet<ILLCSublayer::Address>        AddressSet;
-  _T QMap<INetworLayer::Address, uint>  NeighbourDistanceMap;
+  _T QMap<INetworkLayer::Address, uint> NeighbourDistanceMap;
 
-  _M INetworLayer::Address        m_ipAddress;
+  _M INetworkLayer::Address       m_ipAddress;
   _M uint                         m_sequenceNumber;
   _M MSec                         m_expires;
 
@@ -29,13 +29,13 @@ struct RouterInfo
     Address of the neighbour through which packages should be forwarded
     to this router.
     */
-  _M INetworLayer::Address        m_through;
+  _M INetworkLayer::Address       m_through;
 
   _M NeighbourInfoPacket          m_packet;
 
   _M Vacuum                       RouterInfo();
   _M Vacuum                       RouterInfo(
-                                    INetworLayer::Address ipAddress);
+                                    INetworkLayer::Address ipAddress);
 
 };
 

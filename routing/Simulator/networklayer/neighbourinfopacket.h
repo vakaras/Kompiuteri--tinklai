@@ -12,19 +12,19 @@ struct NeighbourInfoPacket
 
   struct NeighbourInfo
   {
-    _M INetworLayer::Address      m_address;
+    _M INetworkLayer::Address      m_address;
     _M uint                       m_distance;
 
     _M Vacuum                     NeighbourInfo();
     _M Vacuum                     NeighbourInfo(
-                                    const INetworLayer::Address &address,
+                                    const INetworkLayer::Address &address,
                                     uint distance);
   } __attribute__((packed));
 
   _T NeighbourInfo*               NeighbourInfoPtr;
 
   _M NetworkLayerFrameType        m_type;
-  _M INetworLayer::Address        m_senderAddress;
+  _M INetworkLayer::Address        m_senderAddress;
   _M uint                         m_sequenceNumber;
   _M MSec                         m_expires;
   _M ushort                       m_length;
@@ -34,13 +34,13 @@ struct NeighbourInfoPacket
   _M Vacuum                   NeighbourInfoPacket(
                                 const NeighbourInfoPacket& packet);
   _M Vacuum                   NeighbourInfoPacket(
-                                const INetworLayer::Address &senderAddress,
+                                const INetworkLayer::Address &senderAddress,
                                 uint sequenceNumber);
   _M Vacuum                   ~NeighbourInfoPacket();
   _M NeighbourInfoPacket&     operator=(const NeighbourInfoPacket &packet);
   _S NeighbourInfoPacket      fromBytes(BytePtr bytes);
   _M uint                     toBytes(BytePtr &bytes);
-  _M void                     append(const INetworLayer::Address &address,
+  _M void                     append(const INetworkLayer::Address &address,
                                      uint distance);
   _S uint                     headerLength();
   _M uint                     length();

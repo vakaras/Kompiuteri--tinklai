@@ -9,13 +9,13 @@
 struct NeighbourInfoACKPacket
 {
   _M NetworkLayer::FrameType  m_type;
-  _M INetworLayer::Address    m_dataAuthorAddress;
-  _M INetworLayer::Address    m_senderAddress;
+  _M INetworkLayer::Address    m_dataAuthorAddress;
+  _M INetworkLayer::Address    m_senderAddress;
   _M uint                     m_sequenceNumber;
 
   _M Vacuum                   NeighbourInfoACKPacket();
   _M Vacuum                   NeighbourInfoACKPacket(
-                                INetworLayer::Address senderAddress,
+                                INetworkLayer::Address senderAddress,
                                 const NeighbourInfoPacket &packet);
   _S NeighbourInfoACKPacket   fromBytes(BytePtr bytes);
   _M uint                     toBytes(BytePtr &bytes);

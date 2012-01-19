@@ -12,7 +12,7 @@ struct NeighbourInfo
 
   _M IMACSublayer::Address    m_MACAddress;
   _M ILLCSublayerPtr          m_connection;
-  _M INetworLayer::Address    m_IPAddress;
+  _M INetworkLayer::Address    m_IPAddress;
   _M uint                     m_distance;
 
     /// Time moment, after which this info is considered to be useless.
@@ -21,7 +21,7 @@ struct NeighbourInfo
   _M NeighbourInfo();
   _M NeighbourInfo(IMACSublayer::Address MACAddress,
                    ILLCSublayerPtr connection,
-                   INetworLayer::Address IPAdress,
+                   INetworkLayer::Address IPAdress,
                    uint distance);
 };
 

@@ -8,7 +8,7 @@ NeighbourInfoPacket::NeighbourInfo::NeighbourInfo():
 }
 
 NeighbourInfoPacket::NeighbourInfo::NeighbourInfo(
-  const INetworLayer::Address &address, uint distance):
+  const INetworkLayer::Address &address, uint distance):
   m_address(address), m_distance(distance)
 {
 }
@@ -40,7 +40,7 @@ NeighbourInfoPacket::NeighbourInfoPacket(const NeighbourInfoPacket &packet)
 }
 
 NeighbourInfoPacket::NeighbourInfoPacket(
-  const INetworLayer::Address &senderAddress, uint sequenceNumber):
+  const INetworkLayer::Address &senderAddress, uint sequenceNumber):
   m_type(NetworkLayer::FrameType::NeighbourInfo),
   m_senderAddress(senderAddress), m_sequenceNumber(sequenceNumber),
   m_expires(QDateTime::currentMSecsSinceEpoch() + ROUTES_UPDATE_PERIOD * 2),
@@ -88,7 +88,7 @@ uint NeighbourInfoPacket::toBytes(BytePtr &bytes)
 }
 
 void NeighbourInfoPacket::append(
-  const INetworLayer::Address &address, uint distance)
+  const INetworkLayer::Address &address, uint distance)
 {
   if (m_length + 1 < MAX_NEIGHBOURS)
   {

@@ -11,7 +11,7 @@
 
 class TestNetworkLayer;
 
-class Router : public QObject, public INetworLayer
+class Router : public QObject, public INetworkLayer
 {
 
   Q_OBJECT
@@ -22,7 +22,7 @@ private:
   _T QMap<uint, IMACSublayerPtr>  MACMap;
   _T QMap<uint, ILLCSublayerPtr>  LLCMap;
 
-  _M INetworLayer::Address        m_address;
+  _M INetworkLayer::Address       m_address;
   _M MACMap                       m_macs;
   _M LLCMap                       m_llcs;
   _M NetworkLayer                 m_networkLayer;
@@ -30,7 +30,7 @@ private:
 
 public:
 
-  explicit Router(INetworLayer::Address address, QObject *parent = 0);
+  explicit Router(INetworkLayer::Address address, QObject *parent = 0);
 
   _M Vacuum   ~Router();
 

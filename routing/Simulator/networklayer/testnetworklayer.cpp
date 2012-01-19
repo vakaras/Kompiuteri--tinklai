@@ -223,7 +223,7 @@ void TestNetworkLayer::testLineTopology()
   QCOMPARE(ntlayerA.send(ntlayerA.m_address, data, 6), false);
   QCOMPARE(ntlayerA.send(4, data, 6), false);
   QCOMPARE(ntlayerA.send(ntlayerC.m_address, data, 6), true);
-  INetworLayer::Address address;
+  INetworkLayer::Address address;
   BytePtr bytes;
   QCOMPARE(ntlayerC.receive(address, bytes), 6u);
   QCOMPARE(address, ntlayerA.m_address);
@@ -296,7 +296,7 @@ void TestNetworkLayer::testDifficultTopology()
   QTest::qWait(8000);
 
   Byte data[] = {4, 5, 6, 7, 8, 9};
-  INetworLayer::Address address;
+  INetworkLayer::Address address;
   BytePtr bytes;
   Byte *pointer;
 

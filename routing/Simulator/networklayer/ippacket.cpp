@@ -6,8 +6,8 @@ IPPacket::IPPacket():
 {
 }
 
-IPPacket::IPPacket(INetworLayer::Address source,
-                   INetworLayer::Address destination,
+IPPacket::IPPacket(INetworkLayer::Address source,
+                   INetworkLayer::Address destination,
                    Byte *data, uint dataLength):
   m_type(NetworkLayerFrameType::IP), m_dataLength(dataLength),
   m_hops(MAX_HOPS), m_source(source), m_destination(destination),

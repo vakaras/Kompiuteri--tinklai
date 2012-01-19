@@ -5,7 +5,7 @@
 #include <types.h>
 
 
-class INetworLayer
+class INetworkLayer
 {
 
   public:
