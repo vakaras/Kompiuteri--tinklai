@@ -37,6 +37,12 @@ SOURCES +=                                                  \
   networklayer/routingtableprocess.cpp                      \
   networklayer/ippacket.cpp                                 \
   router/router.cpp                                         \
+  transportlayer/transportlayer.cpp                         \
+  transportlayer/socket.cpp                                 \
+  transportlayer/tcppacket.cpp                              \
+  transportlayer/testtransportlayer.cpp                     \
+  transportlayer/transportreader.cpp                        \
+  transportlayer/listener.cpp                               \
 
 HEADERS +=                                                  \
   types.h                                                   \
@@ -48,6 +54,7 @@ HEADERS +=                                                  \
   interfaces/IMACSublayer.h                                 \
   interfaces/ILLCSublayer.h                                 \
   interfaces/INetworkLayer.h                                \
+  interfaces/ITransportLayer.h                              \
   cable/connectionpoint.h                                   \
   cable/testcable.h                                         \
   cable/cable.h                                             \
@@ -72,4 +79,10 @@ HEADERS +=                                                  \
   networklayer/routingtableprocess.h                        \
   networklayer/ippacket.h                                   \
   router/router.h                                           \
+  transportlayer/transportlayer.h                           \
+  transportlayer/socket.h                                   \
+  transportlayer/tcppacket.h                                \
+  transportlayer/testtransportlayer.h                       \
+  transportlayer/transportreader.h                          \
+  transportlayer/listener.h                                 \
 
