@@ -232,6 +232,7 @@ void TestNetworkLayer::testLineTopology()
   {
     QCOMPARE(*(pointer++), byte);
   }
+  QCOMPARE(ntlayerC.receive(address, bytes, 10), 0u);
 
 }
 
@@ -295,7 +296,7 @@ void TestNetworkLayer::testDifficultTopology()
 
   QTest::qWait(8000);
 
-  Byte data[] = {4, 5, 6, 7, 8, 9};
+  Byte data1[] = {4, 5, 6, 7, 8, 9};
   INetworkLayer::Address address;
   BytePtr bytes;
   Byte *pointer;
@@ -303,11 +304,11 @@ void TestNetworkLayer::testDifficultTopology()
   QCOMPARE(routers[4]->m_networkLayer.m_neighbourMap.size(), 2);
   QCOMPARE(routers[4]->m_networkLayer.m_routingTable.m_neighbourMap.size(), 2);
   QCOMPARE(routers[4]->m_networkLayer.m_routingTable.m_routerInfoMap.size(), 4);
-  QCOMPARE(routers[4]->send(routers[0]->address(), data, 6), true);
+  QCOMPARE(routers[4]->send(routers[0]->address(), data1, 6), true);
   QCOMPARE(routers[0]->receive(address, bytes), 6u);
   QCOMPARE(address, routers[4]->m_address);
   pointer = bytes.get();
-  for (auto byte : data)
+  for (auto byte : data1)
   {
     QCOMPARE(*(pointer++), byte);
   }
@@ -334,13 +335,18 @@ void TestNetworkLayer::testDifficultTopology()
   QTest::qWait(20000);
   qDebug() << "W5";
 
+  Byte data2[] = {7, 8, 9, 0, 1, 2, 3};
   QCOMPARE(routers[4]->m_networkLayer.m_routingTable.m_routerInfoMap.size(), 8);
-  QCOMPARE(routers[4]->send(routers[8]->address(), data, 6), true);
+  QCOMPARE(routers[4]->send(routers[8]->address(), data2, 7), true);
   qDebug() << "W5.1";
-  QCOMPARE(routers[8]->receive(address, bytes), 6u);
+  QCOMPARE(routers[8]->receive(address, bytes), 7u);
   qDebug() << "W5.2";
   QCOMPARE(address, routers[4]->m_address);
   pointer = bytes.get();
+  for (auto byte : data2)
+  {
+    QCOMPARE(*(pointer++), byte);
+  }
 
   qDebug() << "W6";
   delete routers[7];
@@ -348,14 +354,19 @@ void TestNetworkLayer::testDifficultTopology()
   routers[5]->disconnect(3);
   QTest::qWait(30000);
   qDebug() << "W7";
+  Byte data3[] = {3, 9, 5, 2, 0, 5, 1, 3};
   QCOMPARE(routers[5]->m_networkLayer.m_neighbourMap.size(), 2);
   QCOMPARE(routers[4]->m_networkLayer.m_routingTable.m_routerInfoMap.size(), 7);
-  QCOMPARE(routers[4]->send(routers[8]->address(), data, 6), true);
+  QCOMPARE(routers[4]->send(routers[8]->address(), data3, 8), true);
   qDebug() << "W7.1";
-  QCOMPARE(routers[8]->receive(address, bytes), 6u);
+  QCOMPARE(routers[8]->receive(address, bytes), 8u);
   qDebug() << "W7.2";
   QCOMPARE(address, routers[4]->m_address);
   pointer = bytes.get();
+  for (auto byte : data3)
+  {
+    QCOMPARE(*(pointer++), byte);
+  }
   qDebug() << "W8";
 
   for (auto router : routers)

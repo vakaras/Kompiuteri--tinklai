@@ -104,6 +104,7 @@ uint NetworkLayer::receive(Address &address, BytePtr &bytes, ulong time)
   }
   uint len;
   std::tie(address, bytes, len) = m_readBuffer.first();
+  m_readBuffer.removeFirst();
   return len;
 }
 
