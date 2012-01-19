@@ -23,6 +23,7 @@ void TestTransportLayer::testInit()
   TransportLayer tlayer1(&ntlayer1);
   TransportLayer tlayer2(&ntlayer2);
   qDebug() << "Transport layer created.";
+  Byte data[] = {2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 5, 9, 0, 4, 5};
   auto listen = [&]()
   {
     IListenerPtr listener = tlayer2.createListener(20);
@@ -30,7 +31,6 @@ void TestTransportLayer::testInit()
     ISocketPtr socket = listener->get();
     qDebug() << "Incomming connection." << socket;
     QCOMPARE(socket->isConnected(), true);
-    Byte data[] = {2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 5, 9, 0, 4, 5};
     QCOMPARE(socket->send(data, 16), true);
   };
   Executor executor(listen);
@@ -42,5 +42,8 @@ void TestTransportLayer::testInit()
   QVERIFY(socket);
   QCOMPARE(socket->isConnected(), true);
   qDebug() << "Connected.";
+  BytePtr bytes;
+  uint len = socket->receive(bytes);
+  QCOMPARE(len, 16u);
   executor.wait();
 }

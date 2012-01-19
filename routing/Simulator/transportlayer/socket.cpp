@@ -1,5 +1,6 @@
 #include "socket.h"
 #include <QDateTime>
+#include <utils/sharedarraydeleter.h>
 
 Socket::Socket(INetworkLayer *network,
                ITransportLayer::Address destinationAddress,
@@ -57,22 +58,22 @@ bool Socket::sendBurst(Byte *bytes, uint len)
 
 bool Socket::send(Byte *bytes, uint len)
 {
-  if (!isConnected())
+  if (!m_connected)
   {
     return false;
   }
-  qDebug() << "Sending data 1.";
+  QMutexLocker locker2(&m_sendMutex);
   QMutexLocker locker(&m_socketMutex);
 
-  qDebug() << "Sending data 2.";
+  m_ackSequence = m_sourceSequence;
+
   for (uint i = 0; i < len;)
   {
-    qDebug() << "Sending data 3.";
+    qDebug() << "Sending 1.";
     uint oldAckSequence = m_ackSequence;
     if (m_destinationWindowSize)
     {
       // We are allowed to send data.
-      qDebug() << "Trying to send.";
       Byte* start = bytes + i;
       uint length = qMin(qMin(len - i, m_destinationWindowSize),
                          m_congestionWindowSize * MAX_SEGMENT_SIZE);
@@ -80,8 +81,8 @@ bool Socket::send(Byte *bytes, uint len)
 
       MSec now = QDateTime::currentMSecsSinceEpoch();
       m_senderTimeoutMoment = now + (m_rtt << 1);
-      while (m_senderTimeoutMoment > now ||
-             m_ackSequence == m_sourceSequence)
+      while (m_senderTimeoutMoment > now &&
+             m_ackSequence < m_sourceSequence)
       {
         m_senderWaitCondition.wait(&m_socketMutex,
                                    m_senderTimeoutMoment - now);
@@ -120,13 +121,32 @@ bool Socket::send(Byte *bytes, uint len)
     }
     i += m_ackSequence - oldAckSequence;
   }
-  return false;
+  qDebug() << "----->Sent.";
+  return true;
 }
 
 uint Socket::receive(BytePtr &bytes, ulong time)
 {
-  // TODO
-  return 0;
+  QMutexLocker locker(&m_socketMutex);
+  while (m_destinationSequence <= m_readBufferLowerBound)
+  {
+    qDebug() << "Waiting." << m_destinationSequence << m_readBufferLowerBound;
+    if (!m_readBufferWaitCondition.wait(&m_socketMutex, time))
+    {
+      return 0;
+    }
+  }
+  qDebug() << "Copying." << m_readBuffer.size();
+  uint len = m_destinationSequence - m_readBufferLowerBound + 1;
+  Byte *data = new Byte[len];
+  bytes = BytePtr(data, sharedArrayDeleter<Byte>);
+  for (uint i = m_readBufferLowerBound; i <= m_destinationSequence; i++)
+  {
+    data[i - m_readBufferLowerBound] = m_readBuffer[i];
+    m_readBuffer.remove(i);
+  }
+  m_readBufferLowerBound = m_destinationSequence + 1;
+  return len;
 }
 
 void Socket::disconnect()
@@ -136,6 +156,7 @@ void Socket::disconnect()
 
 bool Socket::isConnected()
 {
+  QMutexLocker locker(&m_socketMutex);
   return m_connected;
 }
 
@@ -152,7 +173,7 @@ bool Socket::connect()
   packet.m_ackFlag = 0;
   send(packet);
   m_connectWaitCondition.wait(&m_socketMutex, 1000);
-  return isConnected();
+  return m_connected;
 }
 
 void Socket::sendConnectResponse()
@@ -188,7 +209,6 @@ void Socket::parseSegment(ITransportLayer::Address address,
   {
     if (packet.m_synFlag)
     {
-      qDebug() << " SynFlag set." << packet.m_ackNumber << m_sourceSequence;
       if (packet.m_ackNumber == m_sourceSequence)
       {
         finalizeConnecting(packet);
@@ -196,8 +216,58 @@ void Socket::parseSegment(ITransportLayer::Address address,
     }
     else
     {
-      qDebug() << "ERROR";
-      // TODO: Data arrived.
+      m_ackSequence = packet.m_ackNumber;
+      qDebug() << "ACK received:" << this << m_ackSequence;
+      uint len = packet.m_dataLength;
+      uint sequence = packet.m_sequenceNumber;
+      if (sequence + len <= m_destinationSequence)
+      {
+        qDebug() << "Byte sequence number < lower buffer bound.";
+      }
+      else if (sequence >= m_readBufferLowerBound + MAX_BUFFER_SIZE)
+      {
+        qDebug() << "Byte sequence number > higher buffer bound.";
+      }
+      else
+      {
+        qDebug() << "Copying." << this << m_destinationSequence << sequence;
+        for (uint i = qMax(sequence, m_destinationSequence);
+             i < qMin(sequence + len,
+                      m_readBufferLowerBound + MAX_BUFFER_SIZE);
+             i++)
+        {
+          m_readBuffer[i] = packet.m_data[i-sequence];
+        }
+        for (uint i = m_readBufferLowerBound;
+             i < m_readBufferLowerBound + MAX_BUFFER_SIZE;
+             i++)
+        {
+          if (m_readBuffer.contains(i))
+          {
+            m_destinationSequence = i;
+          }
+          else
+          {
+            break;
+          }
+        }
+        qDebug() << "WAKE UP!" << m_destinationSequence
+                 << m_readBufferLowerBound;
+        m_readBufferWaitCondition.wakeOne();
+      }
+      if (m_sendMutex.tryLock())
+      {
+        // There is no packages for piggybacking. Send ACK alone.
+        TCPPacket packet;
+        packet.m_sourcePort = m_sourcePort;
+        packet.m_destinationPort = m_destinationPort;
+        packet.m_sequenceNumber = m_sourceSequence++;
+        packet.m_ackFlag = 1;
+        packet.m_ackNumber = m_destinationSequence+1;
+        send(packet);
+        qDebug() << "ACK Sent" << this << packet.m_ackNumber;
+        m_sendMutex.unlock();
+      }
     }
   }
 }
@@ -214,7 +284,7 @@ void Socket::finalizeConnecting(TCPPacket packet)
     packet.m_sequenceNumber = m_sourceSequence++;
     packet.m_synFlag = 1;
     packet.m_ackFlag = 1;
-    packet.m_ackNumber = m_destinationSequence+1;
+    packet.m_ackNumber = ++m_destinationSequence;
     send(packet);
   }
   else
@@ -222,6 +292,7 @@ void Socket::finalizeConnecting(TCPPacket packet)
     qDebug() << "Finalize Server.";
   }
   m_destinationWindowSize = packet.m_windowSize;
+  m_readBufferLowerBound = m_destinationSequence;
   m_connected = true;
   m_connectWaitCondition.wakeOne();
 }

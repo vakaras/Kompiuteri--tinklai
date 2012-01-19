@@ -53,6 +53,7 @@ private:
 
     // For sending data.
 
+  _M QMutex                     m_sendMutex;
   _M uint                       m_rtt;
   _M QWaitCondition             m_senderWaitCondition;
   /// Until when sender should wait for ack.
@@ -71,6 +72,14 @@ private:
 
   // Data for application.
   _M ByteMap                    m_readBuffer;
+  /** Just bytes from interval
+    [m_readBufferLowerBound; m_readBufferLowerBound + MAX_BUFFER_SIZE]
+    are accepted into m_readBuffer.
+    */
+  _M uint                       m_readBufferLowerBound;
+  _M QWaitCondition             m_readBufferWaitCondition;
+  /// There exists packet, which is needed to be acknowledged.
+  _M bool                       m_needToAck;
 
 public:
 
