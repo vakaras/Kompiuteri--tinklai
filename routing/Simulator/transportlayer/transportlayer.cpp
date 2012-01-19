@@ -90,7 +90,8 @@ ISocket* TransportLayer::connect(Address address, Port port)
   qDebug() << "Connecting.";
   Port sourcePort = getFreePort();
   qDebug() << "Free port:" << sourcePort;
-  SocketPtr socket(new Socket(m_network, address, port, sourcePort));
+  SocketPtr socket(new Socket(m_network, address, port, sourcePort,
+                              Socket::Type::Client));
 
   qDebug() << "Connecting. 1";
   ConnectionId connectionId = ConnectionId(address, port, sourcePort);
@@ -115,9 +116,8 @@ Socket *TransportLayer::createSocket(Address address, Port sourcePort,
                                      Port destinationPort, uint sequence)
 {
   SocketPtr socket(new Socket(m_network, address, destinationPort,
-                              sourcePort));
+                              sourcePort, Socket::Type::Server));
   socket->setDestinationSequence(sequence);
-  socket->setConnected(true);
   ConnectionId connectionId(address, destinationPort, sourcePort);
   QMutexLocker locker(&m_socketsMapMutex);
   m_socketsMap[connectionId] = socket;

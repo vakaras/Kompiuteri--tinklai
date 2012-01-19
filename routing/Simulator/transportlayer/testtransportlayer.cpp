@@ -30,6 +30,8 @@ void TestTransportLayer::testInit()
     ISocketPtr socket = listener->get();
     qDebug() << "Incomming connection." << socket;
     QCOMPARE(socket->isConnected(), true);
+    Byte data[] = {2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 5, 9, 0, 4, 5};
+    QCOMPARE(socket->send(data, 16), true);
   };
   Executor executor(listen);
   executor.start();
