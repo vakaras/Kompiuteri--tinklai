@@ -11,7 +11,7 @@
 
 void TestTransportLayer::testInit()
 {
-  Cable cable(0.0, 0);
+  Cable cable(1.0/(8*1000), 0);
   MACSublayer mac1(10, cable.createConnectionPoint());
   MACSublayer mac2(11, cable.createConnectionPoint());
   ILLCSublayerPtr llc1(new LLCSublayer(&mac1));
@@ -120,8 +120,8 @@ void TestTransportLayer::testInit()
 void TestTransportLayer::testBigAmountOfData()
 {
   // A -1- R -2- B
-  Cable cable1(0.0, 0);
-  Cable cable2(0.0, 0);
+  Cable cable1(1.0/(8*2000), 0);
+  Cable cable2(1.0/(8*2000), 0);
   MACSublayer macA(10, cable1.createConnectionPoint());
   MACSublayer macB(11, cable2.createConnectionPoint());
   ILLCSublayerPtr llcA(new LLCSublayer(&macA));
