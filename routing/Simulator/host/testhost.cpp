@@ -1,6 +1,7 @@
 #include "testhost.h"
 #include <router/router.h>
 #include <host/smtpserver.h>
+#include <host/smtpclient.h>
 #include <cstring>
 
 void TestHost::testInit()
@@ -60,22 +61,18 @@ void TestHost::testSMTP()
     qDebug() << "Starting server.";
     server.run();
     qDebug() << "Stoped server.";
-    QCOMPARE(server.inbox().size(), 1);
-  };
-  auto client = [&](Host *self){
-    TransportLayer *tlayer = self->transportLayer();
-    ISocketPtr socket = tlayer->connect(1, 25);
-    QVERIFY(socket);
-    const char *data = "HELO astrauskas.lt\n"
-                 "MAIL FROM:<vytautas@astrauskas.lt>\n"
-                 "RCPT TO:<bla@gmail.com>\n"
-                 "DATA\nSome text…\nOther Line\n\nSomething.\n.\n"
-                 "QUIT\n";
-    uint len = strlen(data);
-    QCOMPARE(socket->send((const Byte*) data, len), true);
+    QCOMPARE(server.inbox().size(), 20);
   };
   Cable cable1, cable2;
   Host a(1, server);
+  auto client = [&](Host *self){
+    SMTPClient client(self, 1);
+    for (uint i = 0; i < 20; i++)
+    {
+      QCOMPARE(client.send(), true);
+    }
+    a.stop();
+  };
   Host b(3, client);
   Router router(2);
   a.connect(cable1, 1);
@@ -87,7 +84,6 @@ void TestHost::testSMTP()
   b.start();
   qDebug() << "RUN";
   QTest::qWait(1000);
-  a.stop();
   a.wait();
   b.wait();
 

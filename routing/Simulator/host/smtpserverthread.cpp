@@ -14,7 +14,7 @@ SMTPServerThread::SMTPServerThread(ISocketPtr socket, SMTPServer *server,
 void SMTPServerThread::run()
 {
   qDebug() << "    Starting thread.";
-  send("220 server SMTP");
+  send("220 server SMTP\n");
   QString line = readLine();
   qDebug() << "    Received line:" << line;
   if (line.startsWith("HELO "))
@@ -28,28 +28,28 @@ void SMTPServerThread::run()
       {
         message.m_from = line.remove(0, strlen("MAIL FROM:"));
         qDebug() << "FROM:" << message.m_from;
-        send("250 Ok");
+        send("250 Ok\n");
       }
       else if (line.startsWith("RCPT TO:"))
       {
         message.m_to.append(line.remove(0, strlen("RCPT TO:")));
         qDebug() << "TO:" << message.m_to;
-        send("250 Ok");
+        send("250 Ok\n");
       }
       else if (line.startsWith("DATA"))
       {
-        send("354 End data with <LF>.<LF>");
+        send("354 End data with <LF>.<LF>\n");
         message.m_body = readMessage();
         if (!message.m_body.isEmpty())
         {
           qDebug() << "MSG:" << message.m_body;
           m_server->append(message);
-          send("250 Ok");
+          send("250 Ok\n");
         }
       }
       else if (line.startsWith("QUIT"))
       {
-        send("221 Bye.");
+        send("221 Bye.\n");
         break;
       }
       else if (!m_socket->isConnected())
@@ -60,7 +60,7 @@ void SMTPServerThread::run()
   }
   else
   {
-    send("221 Error, bye.");
+    send("221 Error, bye.\n");
   }
 
 }
@@ -81,7 +81,6 @@ QString SMTPServerThread::readLine()
   QString line = m_buffer;
   line.remove(index, line.size());
   m_buffer.remove(0, index+1);
-  // TODO: Check.
   return line;
 }
 
@@ -100,8 +99,7 @@ QString SMTPServerThread::readMessage()
   }
   QString line = m_buffer;
   line.remove(index, line.size());
-  m_buffer.remove(0, index+2);
-  // TODO: Check.
+  m_buffer.remove(0, index+3);
   return line;
 }
 

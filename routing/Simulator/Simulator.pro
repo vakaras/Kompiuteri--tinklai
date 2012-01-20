@@ -48,6 +48,7 @@ SOURCES +=                                                  \
   host/smtpserver.cpp                                       \
   host/smtpserverthread.cpp                                 \
   host/smtpmessage.cpp                                      \
+  host/smtpclient.cpp                                       \
 
 HEADERS +=                                                  \
   types.h                                                   \
@@ -95,4 +96,5 @@ HEADERS +=                                                  \
   host/smtpserver.h                                         \
   host/smtpserverthread.h                                   \
   host/smtpmessage.h                                        \
+  host/smtpclient.h                                         \
 
