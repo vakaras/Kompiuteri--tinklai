@@ -110,10 +110,24 @@ ISocket* TransportLayer::connect(Address address, Port port)
   }
 }
 
-bool TransportLayer::remove(ISocket *socket)
+bool TransportLayer::remove(ISocket *socketPointer)
 {
-  // TODO
-  return false;
+  ConnectionId connectionId(((Socket*) socketPointer)->destinationAddress(),
+                            ((Socket*) socketPointer)->destinationPort(),
+                            ((Socket*) socketPointer)->sourcePort());
+  m_socketsMapMutex.lock();
+  if (!m_socketsMap.contains(connectionId))
+  {
+    m_socketsMapMutex.unlock();
+    return false;
+  }
+  SocketPtr socket = m_socketsMap[connectionId];
+  m_socketsMapMutex.unlock();
+  bool success = socket->disconnect();
+  m_socketsMapMutex.lock();
+  m_socketsMap.remove(connectionId);
+  m_socketsMapMutex.unlock();
+  return success;
 }
 
 Socket *TransportLayer::createSocket(Address address, Port sourcePort,

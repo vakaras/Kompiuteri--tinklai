@@ -13,6 +13,8 @@
 extern uint MAX_SEGMENT_SIZE;
 extern uint MAX_BUFFER_SIZE;
 extern uint MAX_SEGMENT_AMOUNT;
+/// After this number of timeouts, automatically releases connection.
+extern uint MAX_TIMEOUT_COUNT;
 
 
 class Socket : public QObject, public ISocket
@@ -54,6 +56,9 @@ private:
 
     // For connection establishing.
   _M QWaitCondition             m_connectWaitCondition;
+
+    // For dropping connection.
+  _M QWaitCondition             m_disconnectWaitCondition;
 
   _M bool                       send(TCPPacket packet);
 
@@ -108,6 +113,12 @@ public:
   /// Client sends last ACK to server and marks connection as established.
   _M void   finalizeConnecting(TCPPacket packet);
   _M void   setDestinationSequence(uint sequence);
+
+  _M ITransportLayer::Address   destinationAddress();
+  _M ITransportLayer::Port      destinationPort();
+  _M ITransportLayer::Port      sourcePort();
+
+  _M bool   disconnect();
 
 };
 

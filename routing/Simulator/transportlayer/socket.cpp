@@ -65,6 +65,7 @@ bool Socket::send(const Byte *bytes, uint len)
   QMutexLocker locker(&m_socketMutex);
 
   m_ackSequence = m_sourceSequence;
+  uint timeoutCounter = 0;
 
   for (uint i = 0; i < len;)
   {
@@ -89,6 +90,7 @@ bool Socket::send(const Byte *bytes, uint len)
       }
       if (m_ackSequence != m_sourceSequence)
       {
+        timeoutCounter++;
         // Timeout occured.
         qDebug() << "Timeout" << m_rtt;
         m_sourceSequence = m_ackSequence;
@@ -101,6 +103,7 @@ bool Socket::send(const Byte *bytes, uint len)
       }
       else
       {
+        timeoutCounter = 0;
         if (m_congestionWindowSize >= m_threshold)
         {
           m_congestionWindowSize++;
@@ -110,6 +113,11 @@ bool Socket::send(const Byte *bytes, uint len)
           m_congestionWindowSize <<= 1;
         }
         m_rtt = ((m_rtt * 7) >> 3) + ((now - m_senderTimeoutMoment) >> 3);
+      }
+      if (timeoutCounter == MAX_TIMEOUT_COUNT)
+      {
+        m_connected = false;
+        return false;
       }
     }
     else
@@ -190,7 +198,7 @@ void Socket::parseSegment(ITransportLayer::Address address,
 {
   QMutexLocker locker(&m_socketMutex);
   if (address != m_destinationAddress ||
-      !packet.m_ackFlag ||
+      (!packet.m_ackFlag && !packet.m_finFlag) ||
       (packet.m_synFlag && m_connected) ||
       (!packet.m_synFlag && !m_connected))
   {
@@ -204,6 +212,25 @@ void Socket::parseSegment(ITransportLayer::Address address,
       if (packet.m_ackNumber == m_sourceSequence)
       {
         finalizeConnecting(packet);
+      }
+    }
+    else if (packet.m_finFlag)
+    {
+      qDebug() << "Dropping connection!";
+      m_connected = false;
+      if (!packet.m_ackFlag)
+      {
+        TCPPacket packet;
+        packet.m_sourcePort = m_sourcePort;
+        packet.m_destinationPort = m_destinationPort;
+        packet.m_sequenceNumber = m_sourceSequence++;
+        packet.m_ackFlag = 1;
+        packet.m_finFlag = 1;
+        send(packet);
+      }
+      else
+      {
+        m_disconnectWaitCondition.wakeOne();
       }
     }
     else
@@ -298,4 +325,43 @@ void Socket::setDestinationSequence(uint sequence)
 {
   QMutexLocker locker(&m_socketMutex);
   m_destinationSequence = sequence + 1;
+}
+
+ITransportLayer::Address Socket::destinationAddress()
+{
+  QMutexLocker locker(&m_socketMutex);
+  return m_destinationAddress;
+}
+
+ITransportLayer::Port Socket::destinationPort()
+{
+  QMutexLocker locker(&m_socketMutex);
+  return m_destinationPort;
+}
+
+ITransportLayer::Port Socket::sourcePort()
+{
+  QMutexLocker locker(&m_socketMutex);
+  return m_sourcePort;
+}
+
+bool Socket::disconnect()
+{
+  QMutexLocker locker(&m_socketMutex);
+  if (!m_connected)
+  {
+    return true;
+  }
+  else
+  {
+    TCPPacket packet;
+    packet.m_sourcePort = m_sourcePort;
+    packet.m_destinationPort = m_destinationPort;
+    packet.m_sequenceNumber = m_sourceSequence++;
+    packet.m_ackFlag = 0;
+    packet.m_finFlag = 1;
+    send(packet);
+    qDebug() << "Waiting for:" << (m_rtt << 2);
+    return m_disconnectWaitCondition.wait(&m_socketMutex, (m_rtt << 3));
+  }
 }
