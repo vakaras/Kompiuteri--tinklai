@@ -31,6 +31,7 @@ void MACSublayer::clearReadBuffer()
 
 bool MACSublayer::flushBytes(BytePtr bytes, uint len)
 {
+  MLOG("Flushing byte sequence.");
   bool successful = true;
   for (auto it : {0, 1, 1, 1, 1, 1, 1, 0})
     successful &= m_connection->write(it);
@@ -92,6 +93,11 @@ uint MACSublayer::formFrame(MACFrame *frame, BytePtr &bytes)
   pointer[index++] = ((Byte *) &checkSum)[0];
   pointer[index++] = ((Byte *) &checkSum)[1];
 
+  MLOG("Creating frame"
+       << "data length =" << frame->m_length
+       << "total length =" << len
+       << "checkSum =" << checkSum);
+
   return len;
 }
 
@@ -118,6 +124,9 @@ bool MACSublayer::sendFrame(MACFrame *frame)
       waitPeriod = random(1 << 10);
     else
       waitPeriod = random(1 << counter);
+    MLOG("Collision occured"
+         << "counter =" << counter
+         << "waitPeriod =" << waitPeriod);
     m_connection->wait(waitPeriod);
   }
 
@@ -129,6 +138,10 @@ bool MACSublayer::saveFrame(MACFrame frame)
   QMutexLocker locker(&m_readBufferMutex);
   m_readBuffer.append(frame);
   m_readBufferWaitCondition.wakeOne();
+  MLOG("Frame saved to read buffer."
+       << "from =" << frame.m_sourceAddress
+       << "to =" << frame.m_destinationAddress
+       << "length =" << frame.m_length);
   return true;
 }
 
@@ -210,6 +223,7 @@ uint MACSublayer::read(
   QMutexLocker locker(&m_readBufferMutex);
   while (m_readBuffer.isEmpty())
   {
+    MLOG("No frames in read buffer: waiting for" << time);
     if (!m_readBufferWaitCondition.wait(&m_readBufferMutex, time))
     {
       return 0;

@@ -13,12 +13,14 @@ void MACReader::start()
 {
   CHANGE_GO(true);
   QThread::start();
+  MLOG("Started.");
 }
 
 void MACReader::stop()
 {
   CHANGE_GO(false);
   wait();
+  MLOG("Stopped.");
 }
 
 void MACReader::analyseBitChange(Bit bit)
@@ -27,18 +29,18 @@ void MACReader::analyseBitChange(Bit bit)
   {
     if (m_count[1] == 5 && !m_buffer.isEmpty())
     {
-      // Removing stuffed bit.
+      MLOG("Removing stuffed bit.");
       m_buffer.removeLast();
     }
     else if (m_count[1] == 6 && m_buffer.size() >= 8 &&
              m_buffer.at(m_buffer.size() - 8) == 0)
     {
-      // We have found marker: 0111 1110.
       markerFoundAction();
     }
     else if (m_count[1] >= 6)
     {
       // Damaged frame.
+      MLOG("Detected damaged frame.");
       m_state = Search;
     }
   }
@@ -49,19 +51,20 @@ void MACReader::markerFoundAction()
 {
   if (m_state == Search)
   {
-    // Frame begins.
+    MLOG("Found marker: 0111 1110. Frame begins.");
     m_state = Read;
     m_buffer.clear();
   }
   else // m_state == Read
   {
-    // One frame ends, other begins.
     for (int i = 0; i < 8; i++)
     {
       // Remove marker byte.
       if (!m_buffer.isEmpty())
         m_buffer.removeLast();
     }
+    MLOG("Found marker: 0111 1110. One frame ends, other begins."
+         << "size =" << m_buffer.size());
     m_layer->save(m_buffer);
     m_state = Read;
     m_buffer.clear();
@@ -84,6 +87,7 @@ void MACReader::run()
     Bit bit = m_connection->read(100, &timedOut);
     if (!timedOut)
     {
+      MLOG("Read bit:" << bit);
       m_buffer.append(bit);
       if (lastBit == bit)
         m_count[bit]++;
