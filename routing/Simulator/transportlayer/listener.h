@@ -37,7 +37,7 @@ private:
 public:
   explicit Listener(TransportLayer *layer,
                     ITransportLayer::Port port, QObject *parent = 0);
-  _M ISocket* get();
+  _M ISocket* get(ulong time=ULONG_MAX);
   _M void     addConnectionInfo(ITransportLayer::Address address,
                                 ITransportLayer::Port port,
                                 uint sequence);

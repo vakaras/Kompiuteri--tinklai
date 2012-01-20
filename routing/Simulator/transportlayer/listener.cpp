@@ -7,12 +7,16 @@ Listener::Listener(TransportLayer *layer, ITransportLayer::Port port,
 {
 }
 
-ISocket* Listener::get()
+ISocket* Listener::get(ulong time)
 {
   QMutexLocker locker(&m_incommingConnectionsMutex);
   while (m_incommingConnections.isEmpty())
   {
-    m_incommingConnectionsWaitCondition.wait(&m_incommingConnectionsMutex);
+    if (!m_incommingConnectionsWaitCondition.wait(
+          &m_incommingConnectionsMutex, time))
+    {
+      return NULL;
+    }
   }
   ITransportLayer::Address address;
   ITransportLayer::Port port;

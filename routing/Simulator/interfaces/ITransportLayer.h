@@ -34,7 +34,7 @@ class IListener
     /**
       Blocks until someone tries to connect.
       */
-    _V ISocket* get() = 0;
+    _V ISocket* get(ulong time=ULONG_MAX) = 0;
 
 };
 
