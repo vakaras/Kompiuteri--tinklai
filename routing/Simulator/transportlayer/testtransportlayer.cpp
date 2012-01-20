@@ -23,7 +23,11 @@ void TestTransportLayer::testInit()
   TransportLayer tlayer1(&ntlayer1);
   TransportLayer tlayer2(&ntlayer2);
   qDebug() << "Transport layer created.";
-  Byte data[] = {2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 5, 9, 0, 4, 5};
+  Byte data1[] = {2, 7, 1, 8, 2, 8, 1, 8, 2, 8, 4, 5, 9, 0, 4, 5};
+  Byte data2[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
+  Byte data3[] = {0, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+  Byte data4[] = {0, 1, 2, 3, 4, 5, 5, 4, 3, 2, 1, 0};
+  Byte data5[] = {5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5};
   auto listen = [&]()
   {
     IListenerPtr listener = tlayer2.createListener(20);
@@ -31,7 +35,35 @@ void TestTransportLayer::testInit()
     ISocketPtr socket = listener->get();
     qDebug() << "Incomming connection." << socket;
     QCOMPARE(socket->isConnected(), true);
-    QCOMPARE(socket->send(data, 16), true);
+    QCOMPARE(socket->send(data1, 16), true);
+    QCOMPARE(socket->send(data2, 10), true);
+    QCOMPARE(socket->send(data3, 10), true);
+
+    qDebug() << "     Server sent data.";
+    BytePtr bytes;
+    uint len;
+    Byte *pointer;
+
+    len = socket->receive(bytes);
+    pointer = bytes.get();
+    for (uint i = 0; i < len; i++)
+    {
+      qDebug() << "Server received Byte" << i << *(pointer + i);
+    }
+    QCOMPARE(len, 12u);
+    for (auto byte : data4)
+    {
+      QCOMPARE(*(pointer++), byte);
+    }
+
+    len = socket->receive(bytes);
+    QCOMPARE(len, 11u);
+    pointer = bytes.get();
+    for (auto byte : data5)
+    {
+      QCOMPARE(*(pointer++), byte);
+    }
+    qDebug() << "END------------------";
   };
   Executor executor(listen);
   executor.start();
@@ -42,8 +74,41 @@ void TestTransportLayer::testInit()
   QVERIFY(socket);
   QCOMPARE(socket->isConnected(), true);
   qDebug() << "Connected.";
+
   BytePtr bytes;
-  uint len = socket->receive(bytes);
+  uint len;
+  Byte *pointer;
+
+  len = socket->receive(bytes);
   QCOMPARE(len, 16u);
+  pointer = bytes.get();
+  for (auto byte : data1)
+  {
+    QCOMPARE(*(pointer++), byte);
+  }
+
+  len = socket->receive(bytes);
+  QCOMPARE(len, 10u);
+  pointer = bytes.get();
+  for (auto byte : data2)
+  {
+    QCOMPARE(*(pointer++), byte);
+  }
+
+  len = socket->receive(bytes);
+  QCOMPARE(len, 10u);
+  pointer = bytes.get();
+  for (auto byte : data3)
+  {
+    qDebug() << *pointer << byte;
+    QCOMPARE(*(pointer++), byte);
+  }
+
+  qDebug() << "                 Client is sending data.";
+  QCOMPARE(socket->send(data4, 12), true);
+  QCOMPARE(socket->send(data5, 11), true);
+
+  qDebug() << "----------------------------------------Read data.";
   executor.wait();
+  qDebug() << "Kill.";
 }

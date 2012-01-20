@@ -37,7 +37,13 @@ private:
   _M ITransportLayer::Port      m_destinationPort;
   _M ITransportLayer::Port      m_sourcePort;
 
+  /** Sequence number of next byte, which host is expecting to get.
+    (This is ACK for other host.)
+    */
   _M uint                       m_destinationSequence;
+  /** Sequence number of next byte, which is going to be sent. When
+    sending, first send, then increase.
+    */
   _M uint                       m_sourceSequence;
 
   _M bool                       m_connected;

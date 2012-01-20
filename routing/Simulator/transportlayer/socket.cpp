@@ -137,15 +137,15 @@ uint Socket::receive(BytePtr &bytes, ulong time)
     }
   }
   qDebug() << "Copying." << m_readBuffer.size();
-  uint len = m_destinationSequence - m_readBufferLowerBound + 1;
+  uint len = m_destinationSequence - m_readBufferLowerBound;
   Byte *data = new Byte[len];
   bytes = BytePtr(data, sharedArrayDeleter<Byte>);
-  for (uint i = m_readBufferLowerBound; i <= m_destinationSequence; i++)
+  for (uint i = m_readBufferLowerBound; i < m_destinationSequence; i++)
   {
     data[i - m_readBufferLowerBound] = m_readBuffer[i];
     m_readBuffer.remove(i);
   }
-  m_readBufferLowerBound = m_destinationSequence + 1;
+  m_readBufferLowerBound = m_destinationSequence;
   return len;
 }
 
@@ -184,7 +184,7 @@ void Socket::sendConnectResponse()
   packet.m_sourcePort = m_sourcePort;
   packet.m_destinationPort = m_destinationPort;
   packet.m_sequenceNumber = m_sourceSequence++;
-  packet.m_ackNumber = ++m_destinationSequence;
+  packet.m_ackNumber = m_destinationSequence;
   packet.m_synFlag = 1;
   packet.m_ackFlag = 1;
   send(packet);
@@ -220,7 +220,7 @@ void Socket::parseSegment(ITransportLayer::Address address,
       qDebug() << "ACK received:" << this << m_ackSequence;
       uint len = packet.m_dataLength;
       uint sequence = packet.m_sequenceNumber;
-      if (sequence + len <= m_destinationSequence)
+      if (sequence + len < m_destinationSequence)
       {
         qDebug() << "Byte sequence number < lower buffer bound.";
       }
@@ -244,7 +244,7 @@ void Socket::parseSegment(ITransportLayer::Address address,
         {
           if (m_readBuffer.contains(i))
           {
-            m_destinationSequence = i;
+            m_destinationSequence = i + 1;
           }
           else
           {
@@ -261,12 +261,16 @@ void Socket::parseSegment(ITransportLayer::Address address,
         TCPPacket packet;
         packet.m_sourcePort = m_sourcePort;
         packet.m_destinationPort = m_destinationPort;
-        packet.m_sequenceNumber = m_sourceSequence++;
+        packet.m_sequenceNumber = m_sourceSequence;
         packet.m_ackFlag = 1;
-        packet.m_ackNumber = m_destinationSequence+1;
+        packet.m_ackNumber = m_destinationSequence;
         send(packet);
         qDebug() << "ACK Sent" << this << packet.m_ackNumber;
         m_sendMutex.unlock();
+      }
+      else
+      {
+        qDebug() << "ACK piggybacking?" << this;
       }
     }
   }
@@ -277,19 +281,20 @@ void Socket::finalizeConnecting(TCPPacket packet)
   if (m_socketType == Type::Client)
   {
     qDebug() << "Finalize Client.";
-    m_destinationSequence = packet.m_sequenceNumber;
+    m_destinationSequence = packet.m_sequenceNumber + 1;
     TCPPacket packet;
     packet.m_sourcePort = m_sourcePort;
     packet.m_destinationPort = m_destinationPort;
     packet.m_sequenceNumber = m_sourceSequence++;
     packet.m_synFlag = 1;
     packet.m_ackFlag = 1;
-    packet.m_ackNumber = ++m_destinationSequence;
+    packet.m_ackNumber = m_destinationSequence;
     send(packet);
   }
   else
   {
     qDebug() << "Finalize Server.";
+    m_destinationSequence++;
   }
   m_destinationWindowSize = packet.m_windowSize;
   m_readBufferLowerBound = m_destinationSequence;
@@ -300,5 +305,5 @@ void Socket::finalizeConnecting(TCPPacket packet)
 void Socket::setDestinationSequence(uint sequence)
 {
   QMutexLocker locker(&m_socketMutex);
-  m_destinationSequence = sequence;
+  m_destinationSequence = sequence + 1;
 }
