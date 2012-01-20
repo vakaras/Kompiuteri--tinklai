@@ -45,6 +45,9 @@ SOURCES +=                                                  \
   transportlayer/listener.cpp                               \
   host/host.cpp                                             \
   host/testhost.cpp                                         \
+  host/smtpserver.cpp                                       \
+  host/smtpserverthread.cpp                                 \
+  host/smtpmessage.cpp                                      \
 
 HEADERS +=                                                  \
   types.h                                                   \
@@ -89,4 +92,7 @@ HEADERS +=                                                  \
   transportlayer/listener.h                                 \
   host/host.h                                               \
   host/testhost.h                                           \
+  host/smtpserver.h                                         \
+  host/smtpserverthread.h                                   \
+  host/smtpmessage.h                                        \
 

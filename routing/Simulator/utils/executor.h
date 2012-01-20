@@ -25,4 +25,6 @@ public:
 
 };
 
+typedef std::shared_ptr<Executor>   ExecutorPtr;
+
 #endif // EXECUTOR_H
