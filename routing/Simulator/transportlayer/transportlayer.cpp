@@ -19,6 +19,15 @@ void TransportLayer::parseSegment(Address address, BytePtr bytes, uint len)
     TCPPacket packet = TCPPacket::fromBytes(bytes);
     if (packet.length() == len)
     {
+      TLOG("TCP segment received:"
+           << "from =" << address
+           << "s_port =" << packet.m_sourcePort
+           << "d_port =" << packet.m_destinationPort
+           << "seq =" << packet.m_sequenceNumber
+           << "ack =" << packet.m_ackNumber
+           << (packet.m_synFlag ? "SYN" : "")
+           << (packet.m_ackFlag ? "ACK" : "")
+           << (packet.m_finFlag ? "FIN" : ""));
       if (packet.m_synFlag && !packet.m_ackFlag)
       {
         // Client tries connecting to server. (First handshake.)
@@ -85,13 +94,14 @@ IListener* TransportLayer::createListener(Port port)
 
 ISocket* TransportLayer::connect(Address address, Port port)
 {
-  qDebug() << "Connecting.";
   Port sourcePort = getFreePort();
-  qDebug() << "Free port:" << sourcePort;
+  TLOG("Connecting."
+       << "address =" << address
+       << "d_port =" << port
+       << "s_port =" << sourcePort);
   SocketPtr socket(new Socket(m_network, address, port, sourcePort,
                               Socket::Type::Client));
 
-  qDebug() << "Connecting. 1";
   ConnectionId connectionId = ConnectionId(address, port, sourcePort);
   m_socketsMapMutex.lock();
   m_socketsMap[connectionId] = socket;

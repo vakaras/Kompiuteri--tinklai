@@ -30,6 +30,15 @@ bool Socket::send(TCPPacket packet)
   packet.m_windowSize = windowSize < (MAX_BUFFER_SIZE >> 1) ? 0 : windowSize;
   BytePtr bytes;
   uint len = packet.toBytes(bytes);
+  TLOG("Sending TCP:"
+       << "to =" << m_destinationAddress
+       << "s_port =" << packet.m_sourcePort
+       << "d_port =" << packet.m_destinationPort
+       << "seq =" << packet.m_sequenceNumber
+       << "ack =" << packet.m_ackNumber
+       << (packet.m_synFlag ? "SYN" : "")
+       << (packet.m_ackFlag ? "ACK" : "")
+       << (packet.m_finFlag ? "FIN" : ""));
   return m_network->send(m_destinationAddress, bytes.get(), len);
 }
 
@@ -98,6 +107,11 @@ bool Socket::send(const Byte *bytes, uint len)
           m_threshold = 1;
         m_congestionWindowSize = 1;
         m_rtt += 200;
+        TLOG("Timeout:"
+             << "counter =" << timeoutCounter
+             << "congestion window =" << m_congestionWindowSize
+             << "treshold =" << m_threshold
+             << "RTT =" << m_rtt);
       }
       else
       {
@@ -114,13 +128,15 @@ bool Socket::send(const Byte *bytes, uint len)
       }
       if (timeoutCounter == MAX_TIMEOUT_COUNT)
       {
+        TLOG("Failed to send message. Disconnecting.");
         m_connected = false;
         return false;
       }
     }
     else
     {
-      qDebug() << "Blocking for window." << m_destinationWindowSize;
+      TLOG("Blocking for window."
+           << "destination window size =" <<  m_destinationWindowSize);
       // We are not allowed to send data. Wait.
       m_senderWaitCondition.wait(&m_socketMutex);
     }
@@ -196,7 +212,7 @@ void Socket::parseSegment(ITransportLayer::Address address,
       (!packet.m_synFlag && !m_connected))
   {
     // Damaged packet.
-    qDebug() << "Damaged packet.";
+    TLOG("Damaged packet.");
   }
   else
   {
@@ -234,11 +250,11 @@ void Socket::parseSegment(ITransportLayer::Address address,
       uint sequence = packet.m_sequenceNumber;
       if (sequence + len < m_destinationSequence)
       {
-        qDebug() << "Byte sequence number < lower buffer bound." << this;
+        TLOG("Byte sequence number < lower buffer bound.");
       }
       else if (sequence >= m_readBufferLowerBound + MAX_BUFFER_SIZE)
       {
-        qDebug() << "Byte sequence number > higher buffer bound." << this;
+        TLOG("Byte sequence number > higher buffer bound.");
       }
       else
       {
@@ -275,10 +291,11 @@ void Socket::parseSegment(ITransportLayer::Address address,
         packet.m_ackNumber = m_destinationSequence;
         send(packet);
         m_sendMutex.unlock();
+        TLOG("ACK sent.");
       }
       else
       {
-        //qDebug() << "ACK piggybacking?" << this;
+        TLOG("Piggybacking ACK.");
       }
     }
   }
@@ -288,7 +305,7 @@ void Socket::finalizeConnecting(TCPPacket packet)
 {
   if (m_socketType == Type::Client)
   {
-    qDebug() << "Finalize Client.";
+    TLOG("Finish connecting (client).");
     m_destinationSequence = packet.m_sequenceNumber + 1;
     TCPPacket packet;
     packet.m_sourcePort = m_sourcePort;
@@ -301,7 +318,7 @@ void Socket::finalizeConnecting(TCPPacket packet)
   }
   else
   {
-    qDebug() << "Finalize Server.";
+    TLOG("Finish connecting (server).");
     m_destinationSequence++;
   }
   m_destinationWindowSize = packet.m_windowSize;
