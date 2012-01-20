@@ -1,13 +1,11 @@
 #include "smtpclient.h"
 #include <cstring>
 
-#define SEND(msg) if (!send(socket, msg)) return false; qDebug() << "SEND:" << msg;
+#define SEND(msg) if (!send(socket, msg)) return false;
 #define CHECK(code) \
   if (!check(socket, code)) {\
-    qDebug() << "FAILED CHECK:" << code;\
     return false;\
-  }\
-  qDebug() << "CHECK:" << code;
+  }
 
 SMTPClient::SMTPClient(Host *host, ITransportLayer::Address serverAddress,
                        ITransportLayer* transportLayer,
@@ -40,7 +38,6 @@ bool SMTPClient::send()
     CHECK(250);
     SEND("QUIT\n");
     CHECK(221);
-    qDebug() << "Client: remove socket.";
     m_transportLayer->remove(socket);
     return true;
   }

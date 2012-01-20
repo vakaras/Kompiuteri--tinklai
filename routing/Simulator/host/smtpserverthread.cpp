@@ -15,27 +15,22 @@ SMTPServerThread::SMTPServerThread(ISocketPtr socket, SMTPServer *server,
 
 void SMTPServerThread::run()
 {
-  qDebug() << "    Starting thread.";
   send("220 server SMTP\n");
   QString line = readLine();
-  qDebug() << "    Received line:" << line;
   if (line.startsWith("HELO "))
   {
     SMTPMessage message;
     while (true)
     {
       line = readLine();
-      qDebug() << "    Received line:" << line;
       if (line.startsWith("MAIL FROM:"))
       {
         message.m_from = line.remove(0, strlen("MAIL FROM:"));
-        qDebug() << "FROM:" << message.m_from;
         send("250 Ok\n");
       }
       else if (line.startsWith("RCPT TO:"))
       {
         message.m_to.append(line.remove(0, strlen("RCPT TO:")));
-        qDebug() << "TO:" << message.m_to;
         send("250 Ok\n");
       }
       else if (line.startsWith("DATA"))
@@ -44,7 +39,6 @@ void SMTPServerThread::run()
         message.m_body = readMessage();
         if (!message.m_body.isEmpty())
         {
-          qDebug() << "MSG:" << message.m_body;
           m_server->append(message);
           send("250 Ok\n");
         }

@@ -34,7 +34,6 @@ void SMTPServer::run()
       }
     }
   }
-  qDebug() << "Threads alive:" << m_threads.size();
   for (auto thread : m_threads)
   {
     thread->wait();

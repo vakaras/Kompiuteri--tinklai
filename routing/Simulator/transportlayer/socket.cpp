@@ -69,7 +69,6 @@ bool Socket::send(const Byte *bytes, uint len)
 
   for (uint i = 0; i < len;)
   {
-    qDebug() << "Sending 1.";
     uint oldAckSequence = m_ackSequence;
     if (m_destinationWindowSize)
     {
@@ -92,7 +91,6 @@ bool Socket::send(const Byte *bytes, uint len)
       {
         timeoutCounter++;
         // Timeout occured.
-        qDebug() << "Timeout" << m_rtt;
         m_sourceSequence = m_ackSequence;
         if (m_congestionWindowSize > 1)
           m_threshold = m_congestionWindowSize >> 1;
@@ -128,7 +126,6 @@ bool Socket::send(const Byte *bytes, uint len)
     }
     i += m_ackSequence - oldAckSequence;
   }
-  qDebug() << "----->Sent.";
   return true;
 }
 
@@ -137,13 +134,11 @@ uint Socket::receive(BytePtr &bytes, ulong time)
   QMutexLocker locker(&m_socketMutex);
   while (m_destinationSequence <= m_readBufferLowerBound)
   {
-    qDebug() << "Waiting." << m_destinationSequence << m_readBufferLowerBound;
     if (!m_readBufferWaitCondition.wait(&m_socketMutex, time))
     {
       return 0;
     }
   }
-  qDebug() << "Copying." << m_readBuffer.size();
   uint len = m_destinationSequence - m_readBufferLowerBound;
   Byte *data = new Byte[len];
   bytes = BytePtr(data, sharedArrayDeleter<Byte>);
@@ -164,7 +159,6 @@ bool Socket::isConnected()
 
 bool Socket::connect()
 {
-  qDebug() << "Socket connecting.";
   QMutexLocker locker(&m_socketMutex);
 
   TCPPacket packet;
@@ -181,7 +175,6 @@ bool Socket::connect()
 void Socket::sendConnectResponse()
 {
   QMutexLocker locker(&m_socketMutex);
-  qDebug() << "Socket: Sending response.";
   TCPPacket packet;
   packet.m_sourcePort = m_sourcePort;
   packet.m_destinationPort = m_destinationPort;
@@ -216,7 +209,6 @@ void Socket::parseSegment(ITransportLayer::Address address,
     }
     else if (packet.m_finFlag)
     {
-      qDebug() << "Dropping connection!";
       m_ackSequence = packet.m_ackNumber;
       m_connected = false;
       if (!packet.m_ackFlag)
@@ -238,7 +230,6 @@ void Socket::parseSegment(ITransportLayer::Address address,
     else
     {
       m_ackSequence = packet.m_ackNumber;
-      qDebug() << "ACK received:" << this << m_ackSequence;
       uint len = packet.m_dataLength;
       uint sequence = packet.m_sequenceNumber;
       if (sequence + len < m_destinationSequence)
@@ -251,7 +242,6 @@ void Socket::parseSegment(ITransportLayer::Address address,
       }
       else
       {
-        qDebug() << "Copying." << this << m_destinationSequence << sequence;
         for (uint i = qMax(sequence, m_destinationSequence);
              i < qMin(sequence + len,
                       m_readBufferLowerBound + MAX_BUFFER_SIZE);
@@ -272,8 +262,6 @@ void Socket::parseSegment(ITransportLayer::Address address,
             break;
           }
         }
-        qDebug() << "WAKE UP!" << m_destinationSequence
-                 << m_readBufferLowerBound;
         m_readBufferWaitCondition.wakeOne();
       }
       if (m_sendMutex.tryLock() && packet.m_dataLength > 0)
@@ -286,12 +274,11 @@ void Socket::parseSegment(ITransportLayer::Address address,
         packet.m_ackFlag = 1;
         packet.m_ackNumber = m_destinationSequence;
         send(packet);
-        qDebug() << "ACK Sent" << this << packet.m_ackNumber;
         m_sendMutex.unlock();
       }
       else
       {
-        qDebug() << "ACK piggybacking?" << this;
+        //qDebug() << "ACK piggybacking?" << this;
       }
     }
   }
