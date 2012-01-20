@@ -22,6 +22,7 @@ void CableProcess::start()
   m_go = true;
   m_mutex.unlock();
   QThread::start();
+  PLOG("Started.");
 }
 
 void CableProcess::stop()
@@ -31,4 +32,5 @@ void CableProcess::stop()
   m_mutex.unlock();
   m_waitCondition.wakeOne();
   wait();
+  PLOG("Stopped.");
 }

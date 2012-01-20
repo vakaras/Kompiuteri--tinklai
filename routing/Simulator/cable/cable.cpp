@@ -48,6 +48,7 @@ void Cable::deleteUnused()
   }
   for (auto connectionPoint : toDelete)
   {
+    PLOG("Deleting connection:" << connectionPoint.get());
     m_connectionPoints.removeOne(connectionPoint);
   }
 }
@@ -79,6 +80,9 @@ void Cable::processCycle()
     }
     connectionPoint->notify(writersCount == 0);
   }
+  PLOG("Cycle"
+       << "writersCount =" << writersCount
+       << "bit =" << bit);
   unlockAll();
 }
 
@@ -87,5 +91,6 @@ Cable::ConnectionPointPtr Cable::createConnectionPoint()
   QMutexLocker locker(&m_connectionPointsMutex);
   ConnectionPointPtr p(new ConnectionPoint());
   m_connectionPoints.append(p);
+  PLOG("Creating connection:" << p.get());
   return p;
 }

@@ -27,5 +27,6 @@ typedef std::shared_ptr<Byte>     BytePtr;
 typedef QList<Bit>                BitList;
 typedef QList<Byte>               ByteList;
 
+#include <utils/logger.h>
 
 #endif // TYPES_H

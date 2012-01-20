@@ -14,6 +14,7 @@ SOURCES +=                                                  \
   utils/executor.cpp                                        \
   utils/random.cpp                                          \
   utils/genericthread.cpp                                   \
+  utils/logger.cpp                                          \
   cable/connectionpoint.cpp                                 \
   cable/testcable.cpp                                       \
   cable/cable.cpp                                           \
@@ -56,6 +57,7 @@ HEADERS +=                                                  \
   utils/executor.h                                          \
   utils/sharedarraydeleter.h                                \
   utils/genericthread.h                                     \
+  utils/logger.h                                            \
   interfaces/IPhysicalConnection.h                          \
   interfaces/IMACSublayer.h                                 \
   interfaces/ILLCSublayer.h                                 \
