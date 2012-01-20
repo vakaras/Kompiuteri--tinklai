@@ -18,6 +18,7 @@ uint  NEIGHBOUR_INFO_LIFETIME = 20000;
 uint MAX_SEGMENT_SIZE = (1u << 8);
 uint MAX_BUFFER_SIZE = (1u << 14);
 uint MAX_SEGMENT_AMOUNT = (MAX_BUFFER_SIZE/MAX_SEGMENT_SIZE);
+uint MAX_TIMEOUT_COUNT = 10u;
 
 int main(int argc, char *argv[])
 {

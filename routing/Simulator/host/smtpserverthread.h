@@ -16,18 +16,20 @@ class SMTPServerThread : public GenericThread
 
 private:
 
-  _M ISocketPtr   m_socket;
-  _M SMTPServer*  m_server;
-  _M QString      m_buffer;
+  _M ITransportLayer*       m_transportLayer;
+  _M ISocketPtr             m_socket;
+  _M SMTPServer*            m_server;
+  _M QString                m_buffer;
 
-  _M void         run();
-  _M QString      readLine();
-  _M QString      readMessage();
-  _M void         send(const char *msg);
+  _M void                   run();
+  _M QString                readLine();
+  _M QString                readMessage();
+  _M void                   send(const char *msg);
 
 public:
 
   explicit SMTPServerThread(ISocketPtr socket, SMTPServer* server,
+                            ITransportLayer* transportLayer,
                             QObject *parent = 0);
 };
 

@@ -2,11 +2,18 @@
 #include <cstring>
 
 #define SEND(msg) if (!send(socket, msg)) return false; qDebug() << "SEND:" << msg;
-#define CHECK(code) if (!check(socket, code)) return false; qDebug() << "CHECK:" << code;
+#define CHECK(code) \
+  if (!check(socket, code)) {\
+    qDebug() << "FAILED CHECK:" << code;\
+    return false;\
+  }\
+  qDebug() << "CHECK:" << code;
 
 SMTPClient::SMTPClient(Host *host, ITransportLayer::Address serverAddress,
+                       ITransportLayer* transportLayer,
                        QObject *parent):
-  QObject(parent), m_host(host), m_serverAddress(serverAddress)
+  QObject(parent), m_host(host), m_serverAddress(serverAddress),
+  m_transportLayer(transportLayer)
 {
 }
 
@@ -33,6 +40,8 @@ bool SMTPClient::send()
     CHECK(250);
     SEND("QUIT\n");
     CHECK(221);
+    qDebug() << "Client: remove socket.";
+    m_transportLayer->remove(socket);
     return true;
   }
 }

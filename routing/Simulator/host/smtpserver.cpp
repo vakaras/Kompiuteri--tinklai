@@ -20,11 +20,21 @@ void SMTPServer::run()
     ISocketPtr socket = listener->get(1000);
     if (socket && socket->isConnected())
     {
-      SMTPServerThreadPtr thread(new SMTPServerThread(socket, this));
+      SMTPServerThreadPtr thread(new SMTPServerThread(socket, this,
+                                                      transportLayer));
       thread->start();
       m_threads.append(thread);
     }
+    // Remove old threads.
+    for (int i = m_threads.size() - 1; i >= 0; i--)
+    {
+      if (m_threads.at(i)->isFinished())
+      {
+        m_threads.removeAt(i);
+      }
+    }
   }
+  qDebug() << "Threads alive:" << m_threads.size();
   for (auto thread : m_threads)
   {
     thread->wait();

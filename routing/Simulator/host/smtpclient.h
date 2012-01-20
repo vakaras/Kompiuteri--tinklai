@@ -15,6 +15,7 @@ private:
   _M Host*                      m_host;
   _M ITransportLayer::Address   m_serverAddress;
   _M QString                    m_buffer;
+  _M ITransportLayer*           m_transportLayer;
 
   _M bool                       send(ISocket* socket, const char *msg);
   _M bool                       check(ISocket* socket, uint code);
@@ -22,6 +23,7 @@ private:
 public:
 
   explicit SMTPClient(Host *host, ITransportLayer::Address serverAddress,
+                      ITransportLayer* transportLayer,
                       QObject *parent = 0);
   _M bool     send();
 };

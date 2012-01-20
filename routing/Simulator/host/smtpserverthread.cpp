@@ -6,8 +6,10 @@
 #include <host/smtpserver.h>
 
 SMTPServerThread::SMTPServerThread(ISocketPtr socket, SMTPServer *server,
+                                   ITransportLayer* transportLayer,
                                    QObject *parent):
-  GenericThread(parent), m_socket(socket), m_server(server)
+  GenericThread(parent), m_transportLayer(transportLayer),
+  m_socket(socket), m_server(server)
 {
 }
 
@@ -62,6 +64,7 @@ void SMTPServerThread::run()
   {
     send("221 Error, bye.\n");
   }
+  m_transportLayer->remove(m_socket);
 
 }
 

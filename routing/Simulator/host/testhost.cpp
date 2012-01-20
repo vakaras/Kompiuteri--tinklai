@@ -4,6 +4,8 @@
 #include <host/smtpclient.h>
 #include <cstring>
 
+#define N 5
+
 void TestHost::testInit()
 {
 
@@ -61,13 +63,13 @@ void TestHost::testSMTP()
     qDebug() << "Starting server.";
     server.run();
     qDebug() << "Stoped server.";
-    QCOMPARE(server.inbox().size(), 20);
+    QCOMPARE(server.inbox().size(), N);
   };
   Cable cable1, cable2;
   Host a(1, server);
   auto client = [&](Host *self){
-    SMTPClient client(self, 1);
-    for (uint i = 0; i < 20; i++)
+    SMTPClient client(self, 1, self->transportLayer());
+    for (uint i = 0; i < N; i++)
     {
       QCOMPARE(client.send(), true);
     }

@@ -217,6 +217,7 @@ void Socket::parseSegment(ITransportLayer::Address address,
     else if (packet.m_finFlag)
     {
       qDebug() << "Dropping connection!";
+      m_ackSequence = packet.m_ackNumber;
       m_connected = false;
       if (!packet.m_ackFlag)
       {
@@ -224,6 +225,7 @@ void Socket::parseSegment(ITransportLayer::Address address,
         packet.m_sourcePort = m_sourcePort;
         packet.m_destinationPort = m_destinationPort;
         packet.m_sequenceNumber = m_sourceSequence++;
+        packet.m_ackNumber = m_destinationSequence;
         packet.m_ackFlag = 1;
         packet.m_finFlag = 1;
         send(packet);
@@ -360,6 +362,7 @@ bool Socket::disconnect()
     packet.m_sequenceNumber = m_sourceSequence++;
     packet.m_ackFlag = 0;
     packet.m_finFlag = 1;
+    packet.m_ackNumber = m_destinationSequence;
     send(packet);
     qDebug() << "Waiting for:" << (m_rtt << 2);
     return m_disconnectWaitCondition.wait(&m_socketMutex, (m_rtt << 3));
