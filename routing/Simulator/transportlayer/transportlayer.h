@@ -56,6 +56,7 @@ public:
 
   _M IListener*   createListener(Port port);
   _M ISocket*     connect(Address address, Port port);
+  _M bool         remove(ISocket* socket);
 };
 
 #endif // TRANSPORTLAYER_H

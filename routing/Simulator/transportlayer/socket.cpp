@@ -149,11 +149,6 @@ uint Socket::receive(BytePtr &bytes, ulong time)
   return len;
 }
 
-void Socket::disconnect()
-{
-  // TODO
-}
-
 bool Socket::isConnected()
 {
   QMutexLocker locker(&m_socketMutex);

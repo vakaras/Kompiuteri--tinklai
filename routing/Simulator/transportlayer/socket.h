@@ -98,7 +98,6 @@ public:
 
   _M bool   send(const Byte *bytes, uint len);
   _M uint   receive(BytePtr &bytes, ulong time=ULONG_MAX);
-  _M void   disconnect();
   _M bool   isConnected();
 
   _M bool   connect();

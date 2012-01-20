@@ -17,8 +17,6 @@ class ISocket
     */
   _V uint   receive(BytePtr &bytes, ulong time=ULONG_MAX) = 0;
 
-  _V void   disconnect() = 0;
-
   _V bool   isConnected() = 0;
 
 };
@@ -52,6 +50,9 @@ class ITransportLayer
 
     /** Tries to connect. If fails returns NULL. */
     _V ISocket*   connect(Address address, Port port) = 0;
+
+    /** Deletes socket. */
+    _V bool       remove(ISocket* socket) = 0;
 
 };
 

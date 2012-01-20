@@ -112,6 +112,12 @@ ISocket* TransportLayer::connect(Address address, Port port)
   }
 }
 
+bool TransportLayer::remove(ISocket *socket)
+{
+  // TODO
+  return false;
+}
+
 Socket *TransportLayer::createSocket(Address address, Port sourcePort,
                                      Port destinationPort, uint sequence)
 {
