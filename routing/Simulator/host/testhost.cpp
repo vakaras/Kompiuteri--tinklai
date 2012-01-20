@@ -57,19 +57,22 @@ void TestHost::testSMTP()
 {
   auto server = [&](Host *self){
     SMTPServer server(self);
+    qDebug() << "Starting server.";
     server.run();
+    qDebug() << "Stoped server.";
+    QCOMPARE(server.inbox().size(), 1);
   };
   auto client = [&](Host *self){
     TransportLayer *tlayer = self->transportLayer();
     ISocketPtr socket = tlayer->connect(1, 25);
     QVERIFY(socket);
-    char *data = "HELO astrauskas.lt\n"
+    const char *data = "HELO astrauskas.lt\n"
                  "MAIL FROM:<vytautas@astrauskas.lt>\n"
                  "RCPT TO:<bla@gmail.com>\n"
                  "DATA\nSome text…\nOther Line\n\nSomething.\n.\n"
                  "QUIT\n";
     uint len = strlen(data);
-    QCOMPARE(socket->send((Byte*) data, len), true);
+    QCOMPARE(socket->send((const Byte*) data, len), true);
   };
   Cable cable1, cable2;
   Host a(1, server);

@@ -34,7 +34,7 @@ bool Socket::send(TCPPacket packet)
   return m_network->send(m_destinationAddress, bytes.get(), len);
 }
 
-bool Socket::sendBurst(Byte *bytes, uint len)
+bool Socket::sendBurst(const Byte *bytes, uint len)
 {
   bool allOk = true;
   for (uint i = 0; i < len; i += MAX_SEGMENT_SIZE)
@@ -56,7 +56,7 @@ bool Socket::sendBurst(Byte *bytes, uint len)
   return allOk;
 }
 
-bool Socket::send(Byte *bytes, uint len)
+bool Socket::send(const Byte *bytes, uint len)
 {
   if (!m_connected)
   {
@@ -74,7 +74,7 @@ bool Socket::send(Byte *bytes, uint len)
     if (m_destinationWindowSize)
     {
       // We are allowed to send data.
-      Byte* start = bytes + i;
+      const Byte* start = bytes + i;
       uint length = qMin(qMin(len - i, m_destinationWindowSize),
                          m_congestionWindowSize * MAX_SEGMENT_SIZE);
       sendBurst(start, length);

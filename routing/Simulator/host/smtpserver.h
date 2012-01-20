@@ -33,6 +33,7 @@ public:
   _M Vacuum       ~SMTPServer();
   _M void         run();
   _M void         append(SMTPMessage message);
+  _M MessageList  inbox();
 };
 
 #endif // SMTPSERVER_H

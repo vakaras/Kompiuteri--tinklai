@@ -8,10 +8,6 @@ SMTPServer::SMTPServer(Host *host, QObject *parent) :
 
 SMTPServer::~SMTPServer()
 {
-  for (auto thread : m_threads)
-  {
-    thread->wait();
-  }
 }
 
 void SMTPServer::run()
@@ -29,10 +25,20 @@ void SMTPServer::run()
       m_threads.append(thread);
     }
   }
+  for (auto thread : m_threads)
+  {
+    thread->wait();
+  }
 }
 
 void SMTPServer::append(SMTPMessage message)
 {
   QMutexLocker locker(&m_serverMutex);
   m_inbox.append(message);
+}
+
+SMTPServer::MessageList SMTPServer::inbox()
+{
+  QMutexLocker locker(&m_serverMutex);
+  return m_inbox;
 }

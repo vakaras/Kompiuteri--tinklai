@@ -10,7 +10,7 @@ class ISocket
   public:
 
   /** Tries to send byte sequence. */
-  _V bool   send(Byte *bytes, uint len) = 0;
+  _V bool   send(const Byte *bytes, uint len) = 0;
 
   /**
     Reads in received data.

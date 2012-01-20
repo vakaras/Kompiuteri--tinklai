@@ -72,7 +72,7 @@ private:
   _M uint                       m_congestionWindowSize;
   _M uint                       m_threshold;
 
-  _M bool                       sendBurst(Byte *bytes, uint len);
+  _M bool                       sendBurst(const Byte *bytes, uint len);
 
     // For receiving data.
 
@@ -96,7 +96,7 @@ public:
                   Type socketType,
                   QObject *parent = 0);
 
-  _M bool   send(Byte *bytes, uint len);
+  _M bool   send(const Byte *bytes, uint len);
   _M uint   receive(BytePtr &bytes, ulong time=ULONG_MAX);
   _M void   disconnect();
   _M bool   isConnected();

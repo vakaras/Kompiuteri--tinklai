@@ -17,7 +17,7 @@ struct TCPPacket
   _M uint                   m_zero    : 12;
   _M ushort                 m_windowSize;
   _M uint                   m_dataLength;
-  _M Byte*                  m_data;
+  _Y Byte*                  m_data;
 
   _M Vacuum                 TCPPacket();
   _S TCPPacket              fromBytes(BytePtr bytes);
