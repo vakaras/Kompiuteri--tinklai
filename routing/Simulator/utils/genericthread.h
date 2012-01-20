@@ -21,6 +21,7 @@ public:
   explicit GenericThread(QObject *parent = 0);
   _V void                   start();
   _V void                   stop();
+  _V bool                   go();
 
 };
 

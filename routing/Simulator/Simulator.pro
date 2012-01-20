@@ -43,6 +43,8 @@ SOURCES +=                                                  \
   transportlayer/testtransportlayer.cpp                     \
   transportlayer/transportreader.cpp                        \
   transportlayer/listener.cpp                               \
+  host/host.cpp                                             \
+  host/testhost.cpp                                         \
 
 HEADERS +=                                                  \
   types.h                                                   \
@@ -85,4 +87,6 @@ HEADERS +=                                                  \
   transportlayer/testtransportlayer.h                       \
   transportlayer/transportreader.h                          \
   transportlayer/listener.h                                 \
+  host/host.h                                               \
+  host/testhost.h                                           \
 

@@ -22,3 +22,9 @@ void GenericThread::changeGo(bool go)
   QMutexLocker locker(&m_goMutex);
   m_go = go;
 }
+
+bool GenericThread::go()
+{
+  QMutexLocker locker(&m_goMutex);
+  return m_go;
+}

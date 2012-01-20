@@ -3,6 +3,7 @@
 #include <macsublayer/testmacsublayer.h>
 #include <networklayer/testnetworklayer.h>
 #include <transportlayer/testtransportlayer.h>
+#include <host/testhost.h>
 
 // MAC sublayer
 uint  MAC_BROADCAST_ADDRESS = 0xFFFF;
@@ -32,6 +33,9 @@ int main(int argc, char *argv[])
 
   TestTransportLayer test4;
   QTest::qExec(&test4, argc, argv);
+
+  TestHost test5;
+  QTest::qExec(&test5, argc, argv);
 
   return 0;
 }
