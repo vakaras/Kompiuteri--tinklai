@@ -255,7 +255,7 @@ void Socket::parseSegment(ITransportLayer::Address address,
                  << m_readBufferLowerBound;
         m_readBufferWaitCondition.wakeOne();
       }
-      if (m_sendMutex.tryLock())
+      if (m_sendMutex.tryLock() && packet.m_dataLength > 0)
       {
         // There is no packages for piggybacking. Send ACK alone.
         TCPPacket packet;
