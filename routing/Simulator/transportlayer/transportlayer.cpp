@@ -32,8 +32,6 @@ void TransportLayer::parseSegment(Address address, BytePtr bytes, uint len)
       else
       {
         QMutexLocker locker(&m_socketsMapMutex);
-        qDebug() << "Got segment:" << address << packet.m_sourcePort
-                 << packet.m_destinationPort;
         ushort sourcePort = packet.m_sourcePort;
         ushort destinationPort = packet.m_destinationPort;
         ConnectionId connectionId = ConnectionId(address, sourcePort,

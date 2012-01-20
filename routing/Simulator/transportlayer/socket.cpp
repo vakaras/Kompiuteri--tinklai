@@ -28,7 +28,6 @@ bool Socket::send(TCPPacket packet)
 {
   uint windowSize = MAX_BUFFER_SIZE - m_readBuffer.size();
   packet.m_windowSize = windowSize < (MAX_BUFFER_SIZE >> 1) ? 0 : windowSize;
-  qDebug() << "Send window size:" << packet.m_windowSize;
   BytePtr bytes;
   uint len = packet.toBytes(bytes);
   return m_network->send(m_destinationAddress, bytes.get(), len);
@@ -190,8 +189,6 @@ void Socket::parseSegment(ITransportLayer::Address address,
                           TCPPacket packet)
 {
   QMutexLocker locker(&m_socketMutex);
-  qDebug() << "Socket: Parsing segment.";
-  qDebug() << packet.m_ackNumber << m_sourceSequence;
   if (address != m_destinationAddress ||
       !packet.m_ackFlag ||
       (packet.m_synFlag && m_connected) ||
@@ -217,11 +214,11 @@ void Socket::parseSegment(ITransportLayer::Address address,
       uint sequence = packet.m_sequenceNumber;
       if (sequence + len < m_destinationSequence)
       {
-        qDebug() << "Byte sequence number < lower buffer bound.";
+        qDebug() << "Byte sequence number < lower buffer bound." << this;
       }
       else if (sequence >= m_readBufferLowerBound + MAX_BUFFER_SIZE)
       {
-        qDebug() << "Byte sequence number > higher buffer bound.";
+        qDebug() << "Byte sequence number > higher buffer bound." << this;
       }
       else
       {
