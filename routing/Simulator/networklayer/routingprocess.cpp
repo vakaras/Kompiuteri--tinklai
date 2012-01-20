@@ -11,6 +11,7 @@ void RoutingProcess::start()
 {
   changeGo(true);
   QThread::start();
+  NLOG("Started.");
 }
 
 void RoutingProcess::stop()
@@ -18,6 +19,7 @@ void RoutingProcess::stop()
   changeGo(false);
   m_layer->m_routingProcessWaitCondition.wakeOne();
   QThread::wait();
+  NLOG("Stopped.");
 }
 
 void RoutingProcess::changeGo(bool go)
@@ -35,17 +37,18 @@ void RoutingProcess::run()
   while (m_go)
   {
     m_goMutex.unlock();
-    //qDebug() << "Routing Started!" << m_layer;
+    NLOG("Routing Started:" << m_layer
+         << "removing old neighbours and sending hello.");
     m_layer->removeOldNeighbours();
     m_layer->helloNeighbours();
-    //qDebug() << "Waiting answers." << m_layer;
+    NLOG("Waiting neighbour answers:" << m_layer);
     m_layer->m_routingProcessWaitCondition.wait(
           &m_layer->m_routingProcessMutex, 3000);
-    //qDebug() << "Looking for answers." << m_layer;
+    NLOG("Analysing neighbour answers:" << m_layer);
     m_layer->sendNeighboursList();
     m_layer->setCalculationExpires(
           QDateTime::currentMSecsSinceEpoch() + ROUTES_UPDATE_PERIOD);
-    //qDebug() << "Sleeping." << m_layer;
+    NLOG("Sleeping:" << m_layer);
     m_layer->m_routingProcessWaitCondition.wait(
           &m_layer->m_routingProcessMutex,
           (ulong) qMax(m_layer->calculationExpires()

@@ -20,20 +20,20 @@ bool RoutingTable::forward(IPPacket packet)
 {
   if (packet.m_hops == 0)
   {
-    qDebug() << "Discarding: hops";
+    NLOG("Discarding package. Reason: hops == 0");
     return false;
   }
   packet.m_hops--;
   QMutexLocker locker(&m_mutex);
   if (!m_routerInfoMap.contains(packet.m_destination))
   {
-    qDebug() << "Discarding: no info about destination";
+    NLOG("Discarding package. Reason: no info about destination.");
     return false;
   }
   RouterInfo &routerInfo = m_routerInfoMap[packet.m_destination];
   if (!m_neighbourMap.contains(routerInfo.m_through))
   {
-    qDebug() << "Discarding: no neighbour";
+    NLOG("Discarding package. Reason: no neighbour (path error).");
     return false;
   }
   NeighbourInfo &neighbour = m_neighbourMap[routerInfo.m_through];
@@ -147,6 +147,7 @@ void RoutingTable::checkACKPackage(ILLCSublayer::Address senderAddress,
 
 void RoutingTable::update()
 {
+  NLOG("Running Dijkstra.");
   removeOld();
   QMultiMap<uint, INetworkLayer::Address> distances;
   QSet<INetworkLayer::Address> analysed;
