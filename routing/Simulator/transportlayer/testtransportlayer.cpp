@@ -7,6 +7,7 @@
 #include <router/router.h>
 
 #define N 1000u
+#define M 20u
 
 void TestTransportLayer::testInit()
 {
@@ -238,4 +239,76 @@ void TestTransportLayer::testBigAmountOfData()
   executor.wait();
   client1.wait();
   client2.wait();
+}
+
+void TestTransportLayer::testPingPong()
+{
+  // A -1- R -2- B
+  Cable cable1(0.0, 0);
+  Cable cable2(0.0, 0);
+  MACSublayer macA(10, cable1.createConnectionPoint());
+  MACSublayer macB(11, cable2.createConnectionPoint());
+  ILLCSublayerPtr llcA(new LLCSublayer(&macA));
+  ILLCSublayerPtr llcB(new LLCSublayer(&macB));
+
+  Router router(3);
+
+  NetworkLayer ntlayerA(1);
+  NetworkLayer ntlayerB(2);
+  ntlayerA.append(llcA);
+  ntlayerB.append(llcB);
+  router.connect(cable1, 12);
+  router.connect(cable2, 13);
+
+  qDebug() << "Creating Transport layer.";
+  TransportLayer tlayerA(&ntlayerA);
+  TransportLayer tlayerB(&ntlayerB);
+  qDebug() << "Transport layer created.";
+
+  auto listen = [&]()
+  {
+    IListenerPtr listener = tlayerA.createListener(20);
+    qDebug() << "Listener created.";
+    ISocketPtr socket = listener->get();
+    qDebug() << "Incomming connection." << socket;
+    QCOMPARE(socket->isConnected(), true);
+    Byte data[] = {0};
+    BytePtr bytes;
+    uint len;
+    for (uint i = 0; i < M; i++)
+    {
+      data[0] = i;
+      QCOMPARE(socket->send(data, 1), true);
+
+      len = socket->receive(bytes);
+      QCOMPARE(len, 1u);
+      qDebug() << bytes.get()[0] << ((Byte) i);
+      QCOMPARE(bytes.get()[0], ((Byte) (i + 10)));
+    }
+  };
+  Executor executor(listen);
+  executor.start();
+  QTest::qWait(5000);
+
+  qDebug() << "Trying to connect.";
+  ISocketPtr socket = tlayerB.connect(1, 20);
+  QVERIFY(socket);
+  QCOMPARE(socket->isConnected(), true);
+  qDebug() << "Connected.";
+
+  BytePtr bytes;
+  uint len;
+  Byte data[] = {0};
+  for (uint i = 0; i < M; i++)
+  {
+    len = socket->receive(bytes);
+    QCOMPARE(len, 1u);
+    qDebug() << bytes.get()[0] << ((Byte) i);
+    QCOMPARE(bytes.get()[0], ((Byte) i));
+
+    data[0] = i + 10;
+    QCOMPARE(socket->send(data, 1), true);
+  }
+
+  executor.wait();
 }

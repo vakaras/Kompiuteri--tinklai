@@ -15,6 +15,7 @@ private slots:
 
   _M void       testInit();
   _M void       testBigAmountOfData();
+  _M void       testPingPong();
 
 };
 
