@@ -10,9 +10,9 @@
 #include <transportlayer/tcppacket.h>
 
 
-#define MAX_SEGMENT_SIZE (1u << 8)
-#define MAX_BUFFER_SIZE (1u << 14)
-#define MAX_SEGMENT_AMOUNT (MAX_BUFFER_SIZE/MAX_SEGMENT_SIZE)
+extern uint MAX_SEGMENT_SIZE;
+extern uint MAX_BUFFER_SIZE;
+extern uint MAX_SEGMENT_AMOUNT;
 
 
 class Socket : public QObject, public ISocket

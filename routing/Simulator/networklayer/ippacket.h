@@ -4,7 +4,7 @@
 #include <networklayer/types.h>
 #include <interfaces/INetworkLayer.h>
 
-#define MAX_HOPS  20
+extern uint MAX_HOPS;
 
 struct IPPacket
 {

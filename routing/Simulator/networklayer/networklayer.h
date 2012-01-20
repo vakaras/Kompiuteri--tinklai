@@ -15,8 +15,8 @@
 #include <networklayer/connectionwrapper.h>
 #include <networklayer/routingtable.h>
 
-#define ROUTES_UPDATE_PERIOD 10000
-#define MAX_READ_BUFFER_SIZE 20
+extern uint ROUTES_UPDATE_PERIOD;
+extern int MAX_READ_BUFFER_SIZE;
 
 
 class TestNetworkLayer;

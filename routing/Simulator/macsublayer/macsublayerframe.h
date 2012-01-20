@@ -4,9 +4,8 @@
 
 #include <interfaces/IMACSublayer.h>
 
-#define MAC_FRAME_DATA_SIZE_MAX 512
-#define MAC_FRAME_SIZE_MIN      64
-
+extern uint MAC_FRAME_DATA_SIZE_MAX;
+extern uint MAC_FRAME_SIZE_MIN;
 
 struct MACFrame
 {

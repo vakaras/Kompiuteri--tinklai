@@ -4,7 +4,7 @@
 
 #include <types.h>
 
-#define MAC_BROADCAST_ADDRESS   0xFFFF
+extern uint MAC_BROADCAST_ADDRESS;
 
 
 class IMACSublayer
