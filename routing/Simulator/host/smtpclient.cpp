@@ -45,6 +45,7 @@ bool SMTPClient::send()
 
 bool SMTPClient::send(ISocket *socket, const char *msg)
 {
+  SLOG("Client msg:" << msg);
   uint len = strlen(msg);
   return socket->send((const Byte*) msg, len);
 }
@@ -65,5 +66,6 @@ bool SMTPClient::check(ISocket *socket, uint code)
   QString line = m_buffer;
   line.remove(index, line.size());
   m_buffer.remove(0, index+1);
+  SLOG("Client readline:" << line);
   return line.startsWith(QString::number(code));
 }

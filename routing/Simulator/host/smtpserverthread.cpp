@@ -78,6 +78,7 @@ QString SMTPServerThread::readLine()
   QString line = m_buffer;
   line.remove(index, line.size());
   m_buffer.remove(0, index+1);
+  SLOG("Server readline:" << line);
   return line;
 }
 
@@ -97,11 +98,13 @@ QString SMTPServerThread::readMessage()
   QString line = m_buffer;
   line.remove(index, line.size());
   m_buffer.remove(0, index+3);
+  SLOG("Server readmsg:" << line);
   return line;
 }
 
 void SMTPServerThread::send(const char *msg)
 {
+  SLOG("Server msg:" << msg);
   uint len = strlen(msg);
   m_socket->send((Byte*) msg, len);
 }

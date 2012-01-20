@@ -7,6 +7,7 @@
 //#define LOG_MAC
 //#define LOG_NETWORK
 //#define LOG_TRANSPORT
+//#define LOG_SMTP
 
 #ifdef LOG_PHYSICAL
 #define PLOG(x) qDebug() << this << x;
@@ -30,6 +31,12 @@
 #define TLOG(x) qDebug() << this << x;
 #else
 #define TLOG(x)
+#endif
+
+#ifdef LOG_SMTP
+#define SLOG(x) qDebug() << this << x;
+#else
+#define SLOG(x)
 #endif
 
 #endif // LOGGER_H
