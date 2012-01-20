@@ -4,6 +4,9 @@
 #include <llcsublayer/llcsublayer.h>
 #include <networklayer/networklayer.h>
 #include <utils/executor.h>
+#include <router/router.h>
+
+#define N 1000u
 
 void TestTransportLayer::testInit()
 {
@@ -111,4 +114,128 @@ void TestTransportLayer::testInit()
   qDebug() << "----------------------------------------Read data.";
   executor.wait();
   qDebug() << "Kill.";
+}
+
+void TestTransportLayer::testBigAmountOfData()
+{
+  // A -1- R -2- B
+  Cable cable1(0.0, 0);
+  Cable cable2(0.0, 0);
+  MACSublayer macA(10, cable1.createConnectionPoint());
+  MACSublayer macB(11, cable2.createConnectionPoint());
+  ILLCSublayerPtr llcA(new LLCSublayer(&macA));
+  ILLCSublayerPtr llcB(new LLCSublayer(&macB));
+
+  Router router(3);
+
+  NetworkLayer ntlayerA(1);
+  NetworkLayer ntlayerB(2);
+  ntlayerA.append(llcA);
+  ntlayerB.append(llcB);
+  router.connect(cable1, 12);
+  router.connect(cable2, 13);
+
+  qDebug() << "Creating Transport layer.";
+  TransportLayer tlayerA(&ntlayerA);
+  TransportLayer tlayerB(&ntlayerB);
+  qDebug() << "Transport layer created.";
+
+  QTest::qWait(5000);
+
+  QCOMPARE(tlayerA.connect(2, 20), (ISocketPtr) NULL);
+  QCOMPARE(tlayerA.connect(3, 20), (ISocketPtr) NULL);
+
+  Byte data[N];
+  for (uint i = 0; i < N; i++)
+  {
+    data[i] = i & 15;
+  }
+
+  ISocketPtr socket1;
+  ISocketPtr socket2;
+  ISocketPtr socketClient1;
+  ISocketPtr socketClient2;
+
+  auto send1 = [&]()
+  {
+    QCOMPARE(socket1->isConnected(), true);
+    QCOMPARE(socket1->send(data, N), true);
+  };
+
+  auto send2 = [&]()
+  {
+    QCOMPARE(socket2->isConnected(), true);
+    QCOMPARE(socket2->send(data, N), true);
+  };
+
+  auto receive1 = [&]()
+  {
+    QCOMPARE(socketClient1->isConnected(), true);
+    BytePtr bytes;
+    uint len = 0;
+    Byte buffer[N];
+    for (uint i = 0; i < N; i += len)
+    {
+      len = socketClient1->receive(bytes);
+      for (uint j = 0; j < len; j++)
+      {
+        buffer[i + j] = bytes.get()[j];
+      }
+    }
+    for (uint i = 0; i < N; i++)
+    {
+      QCOMPARE(buffer[i], data[i]);
+    }
+  };
+
+  auto receive2 = [&]()
+  {
+    QCOMPARE(socketClient2->isConnected(), true);
+    BytePtr bytes;
+    uint len = 0;
+    Byte buffer[N];
+    for (uint i = 0; i < N; i += len)
+    {
+      len = socketClient2->receive(bytes);
+      for (uint j = 0; j < len; j++)
+      {
+        buffer[i + j] = bytes.get()[j];
+      }
+    }
+    for (uint i = 0; i < N; i++)
+    {
+      QCOMPARE(buffer[i], data[i]);
+    }
+  };
+
+  auto server = [&]()
+  {
+    IListenerPtr listener = tlayerB.createListener(20);
+    Executor executor1(send1);
+    Executor executor2(send2);
+    socket1 = listener->get();
+    executor1.start();
+    socket2 = listener->get();
+    executor2.start();
+    executor1.wait();
+    executor2.wait();
+    qDebug() << "Server end.";
+  };
+  Executor executor(server);
+  executor.start();
+
+  Executor client1(receive1);
+  Executor client2(receive2);
+  socketClient1 = tlayerA.connect(2, 20);
+  QVERIFY(socketClient1);
+  client1.start();
+
+  socketClient2 = tlayerA.connect(2, 20);
+  QVERIFY(socketClient2);
+  client2.start();
+  qDebug() << "Connected.";
+
+  executor.wait();
+  client1.wait();
+  client2.wait();
 }
